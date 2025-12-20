@@ -1,0 +1,136 @@
+.report-container {
+  padding: 1rem;
+  
+  :host ::ng-deep .report-card {
+    max-width: 900px;
+  }
+  
+  .report-header {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-400));
+    
+    .header-info {
+      h3 {
+        margin: 0 0 0.25rem 0;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+      }
+      
+      .report-period {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  .report-content {
+    .summary-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      
+      .summary-card {
+        padding: 1rem;
+        background: var(--surface-50);
+        border-radius: 8px;
+        text-align: center;
+        border-left: 4px solid var(--primary-color);
+        
+        &.completed {
+          border-left-color: var(--green-500);
+          
+          .summary-value {
+            color: var(--green-500);
+          }
+        }
+        
+        &.pending {
+          border-left-color: var(--orange-500);
+          
+          .summary-value {
+            color: var(--orange-500);
+          }
+        }
+        
+        &.progress {
+          border-left-color: var(--blue-500);
+          
+          .summary-value {
+            color: var(--blue-500);
+          }
+        }
+        
+        .summary-value {
+          display: block;
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--primary-color);
+        }
+        
+        .summary-label {
+          font-size: 0.85rem;
+          color: var(--text-color-secondary);
+        }
+      }
+    }
+    
+    .table-section {
+      h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+        color: var(--text-color);
+      }
+      
+      .count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        
+        &.completed {
+          background: rgba(34, 197, 94, 0.1);
+          color: var(--green-600);
+        }
+        
+        &.pending {
+          background: rgba(249, 115, 22, 0.1);
+          color: var(--orange-600);
+        }
+      }
+      
+      .progress-bar-container {
+        width: 100%;
+        height: 20px;
+        background: var(--surface-200);
+        border-radius: 10px;
+        overflow: hidden;
+        
+        .progress-bar {
+          height: 100%;
+          background: linear-gradient(90deg, var(--primary-color), var(--primary-300));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 0.75rem;
+          font-weight: 600;
+          min-width: 40px;
+        }
+      }
+    }
+  }
+  
+  .report-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+}

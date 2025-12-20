@@ -1,0 +1,72 @@
+<div class="task-launcher">
+  <div class="launcher-header">
+    <h3>Task Management</h3>
+    <p>Create, view, and manage your tasks from here.</p>
+  </div>
+
+  <div class="action-cards">
+    <p-card styleClass="action-card">
+      <div class="card-content">
+        <i class="pi pi-plus-circle"></i>
+        <h4>Create New Task</h4>
+        <p>Add a new task to your project</p>
+        <p-button 
+          label="New Task" 
+          icon="pi pi-plus" 
+          (onClick)="openNewTaskForm()"
+          styleClass="p-button-primary">
+        </p-button>
+      </div>
+    </p-card>
+
+    <p-card styleClass="action-card">
+      <div class="card-content">
+        <i class="pi pi-list"></i>
+        <h4>Quick Actions</h4>
+        <p>Common task operations</p>
+        <div class="quick-action-buttons">
+          <p-button 
+            label="Import" 
+            icon="pi pi-upload" 
+            styleClass="p-button-outlined p-button-sm">
+          </p-button>
+          <p-button 
+            label="Export" 
+            icon="pi pi-download" 
+            styleClass="p-button-outlined p-button-sm">
+          </p-button>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="recent-tasks">
+    <h4>Recent Tasks</h4>
+    <p class="subtitle">Click a task to view details</p>
+    
+    <div class="task-list">
+      @for (task of recentTasks; track task.id) {
+        <div class="task-item" (click)="openTaskDetail(task.id, task.title)">
+          <div class="task-info">
+            <span class="task-title">{{ task.title }}</span>
+            <span class="task-status" [attr.data-status]="task.status">{{ task.status }}</span>
+          </div>
+          <div class="task-actions">
+            <button 
+              class="icon-button" 
+              title="Edit task"
+              (click)="openEditTaskForm(task.id, task.title); $event.stopPropagation()">
+              <i class="pi pi-pencil"></i>
+            </button>
+            <button 
+              class="icon-button" 
+              title="View details"
+              (click)="openTaskDetail(task.id, task.title); $event.stopPropagation()">
+              <i class="pi pi-eye"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<div class="inner-tab-container">
+  @if (innerTabs$ | async; as tabs) {
+    <p-tabs 
+      [value]="activeTabId ?? ''"
+      (valueChange)="onTabValueChange($any($event))"
+      styleClass="inner-tabs">
+      
+      <p-tablist>
+        @for (tab of tabs; track tab.id) {
+          <p-tab [value]="tab.id" class="inner-tab-header">
+            @if (tab.icon) {
+              <i [class]="tab.icon"></i>
+            }
+            <span class="tab-title">{{ tab.title }}</span>
+            @if (tab.closable) {
+              <button 
+                class="close-button"
+                (click)="closeTab($event, tab.id)"
+                title="Close tab">
+                <i class="pi pi-times"></i>
+              </button>
+            }
+          </p-tab>
+        }
+      </p-tablist>
+      
+      <p-tabpanels>
+        @for (tab of tabs; track tab.id) {
+          <p-tabpanel [value]="tab.id">
+            <div class="inner-tab-content">
+              @if (getComponent(tab); as component) {
+                <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id }"></ng-container>
+              } @else {
+                <div class="no-component-warning">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  <p>Component not registered for type: {{ tab.componentType }}</p>
+                </div>
+              }
+            </div>
+          </p-tabpanel>
+        }
+      </p-tabpanels>
+    </p-tabs>
+  }
+</div>

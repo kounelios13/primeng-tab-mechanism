@@ -1,40 +1,7 @@
-<div class="overview-content">
-  <h3>Project Overview</h3>
-  <p>{{ content }}</p>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <i class="pi pi-check-circle"></i>
-      <span class="stat-label">Completed Tasks</span>
-      <span class="stat-value">24</span>
-    </div>
-    <div class="stat-card">
-      <i class="pi pi-clock"></i>
-      <span class="stat-label">Pending Tasks</span>
-      <span class="stat-value">8</span>
-    </div>
-    <div class="stat-card">
-      <i class="pi pi-users"></i>
-      <span class="stat-label">Team Members</span>
-      <span class="stat-value">5</span>
-    </div>
-  </div>
-  
-  <div class="recent-activity">
-    <h4>Recent Activity</h4>
-    <div class="activity-item">
-      <i class="pi pi-check"></i>
-      <span>Task "Update documentation" completed</span>
-      <small>2 hours ago</small>
-    </div>
-    <div class="activity-item">
-      <i class="pi pi-plus"></i>
-      <span>New task "Review code changes" added</span>
-      <small>4 hours ago</small>
-    </div>
-    <div class="activity-item">
-      <i class="pi pi-user"></i>
-      <span>John Doe joined the project</span>
-      <small>1 day ago</small>
-    </div>
-  </div>
-</div>
+<app-inner-tab-container
+  [parentTabId]="'overview'"
+  [launcherComponent]="launcherComponent"
+  [launcherComponentType]="launcherComponentType"
+  [launcherTitle]="'Dashboard'"
+  [launcherIcon]="'pi pi-home'">
+</app-inner-tab-container>

@@ -1,0 +1,98 @@
+<div class="task-form">
+  <div class="form-header">
+    <h3>{{ isEditMode ? 'Edit Task' : 'Create New Task' }}</h3>
+    @if (isEditMode) {
+      <span class="task-id">Editing #{{ taskId }}</span>
+    }
+  </div>
+
+  <form (ngSubmit)="onSubmit()" class="form-content">
+    <div class="form-field">
+      <label for="title">Task Title *</label>
+      <input 
+        pInputText 
+        id="title" 
+        [(ngModel)]="formData.title" 
+        name="title"
+        placeholder="Enter task title"
+        required>
+    </div>
+
+    <div class="form-field">
+      <label for="description">Description</label>
+      <textarea 
+        pInputTextarea 
+        id="description" 
+        [(ngModel)]="formData.description"
+        name="description"
+        rows="4"
+        placeholder="Enter task description"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="priority">Priority</label>
+        <p-dropdown 
+          id="priority"
+          [(ngModel)]="formData.priority"
+          name="priority"
+          [options]="priorities"
+          placeholder="Select priority"
+          [showClear]="true">
+        </p-dropdown>
+      </div>
+
+      <div class="form-field">
+        <label for="status">Status</label>
+        <p-dropdown 
+          id="status"
+          [(ngModel)]="formData.status"
+          name="status"
+          [options]="statuses"
+          placeholder="Select status"
+          [showClear]="true">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="assignee">Assignee</label>
+        <p-dropdown 
+          id="assignee"
+          [(ngModel)]="formData.assignee"
+          name="assignee"
+          [options]="assignees"
+          placeholder="Select assignee"
+          [showClear]="true">
+        </p-dropdown>
+      </div>
+
+      <div class="form-field">
+        <label for="dueDate">Due Date</label>
+        <p-calendar 
+          id="dueDate"
+          [(ngModel)]="formData.dueDate"
+          name="dueDate"
+          [showIcon]="true"
+          placeholder="Select due date">
+        </p-calendar>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button 
+        label="Cancel" 
+        icon="pi pi-times" 
+        styleClass="p-button-outlined p-button-secondary"
+        (onClick)="onCancel()">
+      </p-button>
+      <p-button 
+        type="submit"
+        [label]="isEditMode ? 'Update Task' : 'Create Task'" 
+        [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'" 
+        styleClass="p-button-primary">
+      </p-button>
+    </div>
+  </form>
+</div>

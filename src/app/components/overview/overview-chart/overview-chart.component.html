@@ -1,0 +1,61 @@
+<div class="chart-container">
+  <p-card styleClass="chart-card">
+    <ng-template pTemplate="header">
+      <div class="chart-header">
+        <h3><i class="pi pi-chart-bar"></i> {{ chartType }} Chart</h3>
+      </div>
+    </ng-template>
+    
+    <div class="chart-content">
+      <p class="chart-description">{{ getChartDescription() }}</p>
+      
+      <!-- Mock Chart Visualization -->
+      <div class="mock-chart">
+        <div class="chart-bars">
+          @for (value of chartData.values; track $index; let i = $index) {
+            <div class="bar-container">
+              <div class="bar" [style.height.%]="value">
+                <span class="bar-value">{{ value }}%</span>
+              </div>
+              <span class="bar-label">{{ chartData.labels[i] }}</span>
+            </div>
+          }
+        </div>
+      </div>
+      
+      <div class="chart-summary">
+        <div class="summary-item">
+          <span class="summary-label">Average</span>
+          <span class="summary-value">80%</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Trend</span>
+          <span class="summary-value positive">
+            <i class="pi pi-arrow-up"></i> +12%
+          </span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Target</span>
+          <span class="summary-value">95%</span>
+        </div>
+      </div>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <div class="chart-actions">
+        <p-button 
+          label="Export Data" 
+          icon="pi pi-download" 
+          severity="secondary" 
+          size="small">
+        </p-button>
+        <p-button 
+          label="Full Screen" 
+          icon="pi pi-expand" 
+          severity="secondary" 
+          size="small">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-card>
+</div>

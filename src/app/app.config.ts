@@ -7,7 +7,7 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import Aura from '@primeng/themes/aura';
 
 import { routes } from './app.routes';
-import { tabFeature } from './store';
+import { tabFeature, innerTabFeature } from './store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,7 +18,10 @@ export const appConfig: ApplicationConfig = {
         preset: Aura
       }
     }),
-    provideStore({ [tabFeature.name]: tabFeature.reducer }),
+    provideStore({ 
+      [tabFeature.name]: tabFeature.reducer,
+      [innerTabFeature.name]: innerTabFeature.reducer
+    }),
     provideEffects(),
     provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() })
   ]

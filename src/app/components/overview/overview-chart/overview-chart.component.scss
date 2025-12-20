@@ -1,0 +1,116 @@
+.chart-container {
+  padding: 1rem;
+  
+  :host ::ng-deep .chart-card {
+    max-width: 800px;
+  }
+  
+  .chart-header {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-400));
+    
+    h3 {
+      margin: 0;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.25rem;
+    }
+  }
+  
+  .chart-content {
+    .chart-description {
+      margin: 0 0 1.5rem 0;
+      color: var(--text-color-secondary);
+      font-size: 0.95rem;
+    }
+    
+    .mock-chart {
+      padding: 1rem;
+      background: var(--surface-50);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      
+      .chart-bars {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        height: 200px;
+        padding: 1rem 0;
+        
+        .bar-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex: 1;
+          max-width: 80px;
+          
+          .bar {
+            width: 40px;
+            background: linear-gradient(180deg, var(--primary-color), var(--primary-300));
+            border-radius: 4px 4px 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 0.5rem;
+            min-height: 30px;
+            transition: height 0.3s ease;
+            
+            .bar-value {
+              font-size: 0.75rem;
+              font-weight: 600;
+              color: white;
+            }
+          }
+          
+          .bar-label {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-color-secondary);
+          }
+        }
+      }
+    }
+    
+    .chart-summary {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      padding: 1rem;
+      background: var(--surface-50);
+      border-radius: 8px;
+      
+      .summary-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        
+        .summary-label {
+          font-size: 0.8rem;
+          color: var(--text-color-secondary);
+        }
+        
+        .summary-value {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--text-color);
+          
+          &.positive {
+            color: var(--green-500);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+          }
+        }
+      }
+    }
+  }
+  
+  .chart-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+}

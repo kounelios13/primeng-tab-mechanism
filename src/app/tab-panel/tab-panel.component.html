@@ -8,8 +8,8 @@
       
       <div class="tab-content">
         <ng-container [ngSwitch]="tab.id">
-          <app-tasks *ngSwitchCase="'tasks'" [content]="tab.content"></app-tasks>
-          <app-overview *ngSwitchCase="'overview'" [content]="tab.content"></app-overview>
+          <app-tasks *ngSwitchCase="'tasks'"></app-tasks>
+          <app-overview *ngSwitchCase="'overview'"></app-overview>
           <div *ngSwitchDefault class="default-content">
             <p>{{ tab.content }}</p>
           </div>

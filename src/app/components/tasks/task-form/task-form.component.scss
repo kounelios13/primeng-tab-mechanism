@@ -1,0 +1,64 @@
+.task-form {
+  max-width: 800px;
+  
+  .form-header {
+    margin-bottom: 1.5rem;
+    
+    h3 {
+      margin: 0 0 0.25rem 0;
+      color: var(--primary-color);
+    }
+    
+    .task-id {
+      font-size: 0.9rem;
+      color: var(--text-color-secondary);
+    }
+  }
+}
+
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  
+  input, textarea {
+    width: 100%;
+  }
+  
+  :host ::ng-deep {
+    .p-dropdown, .p-calendar {
+      width: 100%;
+    }
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--surface-border);
+}

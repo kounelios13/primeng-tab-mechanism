@@ -1,0 +1,90 @@
+<div class="report-container">
+  <p-card styleClass="report-card">
+    <ng-template pTemplate="header">
+      <div class="report-header">
+        <div class="header-info">
+          <h3><i class="pi pi-file"></i> {{ reportType }} Report</h3>
+          <span class="report-period">{{ getReportPeriod() }}</span>
+        </div>
+      </div>
+    </ng-template>
+    
+    <div class="report-content">
+      <!-- Summary Cards -->
+      <div class="summary-section">
+        <div class="summary-card">
+          <span class="summary-value">{{ reportSummary.totalTasks }}</span>
+          <span class="summary-label">Total Tasks</span>
+        </div>
+        <div class="summary-card completed">
+          <span class="summary-value">{{ reportSummary.completedTasks }}</span>
+          <span class="summary-label">Completed</span>
+        </div>
+        <div class="summary-card pending">
+          <span class="summary-value">{{ reportSummary.pendingTasks }}</span>
+          <span class="summary-label">Pending</span>
+        </div>
+        <div class="summary-card progress">
+          <span class="summary-value">{{ reportSummary.overallProgress }}%</span>
+          <span class="summary-label">Overall Progress</span>
+        </div>
+      </div>
+      
+      <!-- Report Table -->
+      <div class="table-section">
+        <h4>Task Breakdown</h4>
+        <p-table [value]="reportData" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Task Category</th>
+              <th>Completed</th>
+              <th>Pending</th>
+              <th>Progress</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.task }}</td>
+              <td>
+                <span class="count completed">{{ row.completed }}</span>
+              </td>
+              <td>
+                <span class="count pending">{{ row.pending }}</span>
+              </td>
+              <td>
+                <div class="progress-bar-container">
+                  <div class="progress-bar" [style.width.%]="row.progress">
+                    {{ row.progress }}%
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <div class="report-actions">
+        <p-button 
+          label="Export PDF" 
+          icon="pi pi-file-pdf" 
+          severity="danger" 
+          size="small">
+        </p-button>
+        <p-button 
+          label="Export Excel" 
+          icon="pi pi-file-excel" 
+          severity="success" 
+          size="small">
+        </p-button>
+        <p-button 
+          label="Print" 
+          icon="pi pi-print" 
+          severity="secondary" 
+          size="small">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-card>
+</div>

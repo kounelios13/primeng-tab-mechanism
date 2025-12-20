@@ -1,0 +1,75 @@
+<div class="task-detail">
+  <div class="detail-header">
+    <h3>{{ taskTitle }}</h3>
+    <span class="task-id">#{{ taskId }}</span>
+  </div>
+
+  <p-divider></p-divider>
+
+  <div class="detail-grid">
+    <div class="detail-section main-info">
+      <h4>Description</h4>
+      <p>{{ taskDetails.description }}</p>
+    </div>
+
+    <div class="detail-section meta-info">
+      <div class="meta-item">
+        <label>Assignee</label>
+        <span><i class="pi pi-user"></i> {{ taskDetails.assignee }}</span>
+      </div>
+      
+      <div class="meta-item">
+        <label>Priority</label>
+        <p-tag [value]="taskDetails.priority" [severity]="taskDetails.priority === 'High' ? 'danger' : 'info'"></p-tag>
+      </div>
+      
+      <div class="meta-item">
+        <label>Status</label>
+        <p-tag [value]="taskDetails.status" severity="warn"></p-tag>
+      </div>
+      
+      <div class="meta-item">
+        <label>Created</label>
+        <span><i class="pi pi-calendar"></i> {{ taskDetails.createdDate | date:'mediumDate' }}</span>
+      </div>
+      
+      <div class="meta-item">
+        <label>Due Date</label>
+        <span><i class="pi pi-clock"></i> {{ taskDetails.dueDate | date:'mediumDate' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <p-divider></p-divider>
+
+  <div class="tags-section">
+    <h4>Tags</h4>
+    <div class="tags-list">
+      @for (tag of taskDetails.tags; track tag) {
+        <p-tag [value]="tag" severity="secondary"></p-tag>
+      }
+    </div>
+  </div>
+
+  <p-divider></p-divider>
+
+  <div class="comments-section">
+    <h4>Comments ({{ taskDetails.comments.length }})</h4>
+    <div class="comments-list">
+      @for (comment of taskDetails.comments; track comment.date) {
+        <div class="comment">
+          <div class="comment-header">
+            <strong>{{ comment.author }}</strong>
+            <span class="comment-date">{{ comment.date | date:'short' }}</span>
+          </div>
+          <p>{{ comment.text }}</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <p-button label="Edit Task" icon="pi pi-pencil" styleClass="p-button-outlined"></p-button>
+    <p-button label="Mark Complete" icon="pi pi-check" styleClass="p-button-success"></p-button>
+  </div>
+</div>
