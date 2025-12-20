@@ -51,6 +51,7 @@ ng generate component <name>
 - **PrimeNG Themes**: @primeng/themes package installed (configured via providers, not CSS)
 - **PrimeIcons**: Installed for icon support
 - **Styling**: Modern theme system using JavaScript configuration
+- **NgRx 19**: Store, Effects, and DevTools configured for state management
 
 ### Using PrimeNG Components:
 ```typescript
@@ -101,6 +102,67 @@ tabs = [
   </p-tabPanel>
 </p-tabView>
 ```
+
+## State Management with NgRx ✅ Configured
+
+### Tab State Structure:
+```typescript
+interface TabItem {
+  id: string;
+  title: string;
+  content: string;
+  icon?: string;
+  disabled?: boolean;
+  closable?: boolean;
+}
+
+interface TabState {
+  tabs: TabItem[];
+  activeTabId: string | null;
+}
+```
+
+### Using Tab State in Components:
+```typescript
+import { Store } from '@ngrx/store';
+import { selectAllTabs, selectActiveTab, TabActions } from './store';
+
+@Component({
+  // ...
+})
+export class TabComponent {
+  tabs$ = this.store.select(selectAllTabs);
+  activeTab$ = this.store.select(selectActiveTab);
+
+  constructor(private store: Store) {}
+
+  onTabChange(event: any) {
+    const tabId = this.tabs[event.index].id;
+    this.store.dispatch(TabActions.setActiveTab({ id: tabId }));
+  }
+
+  addNewTab() {
+    const newTab: TabItem = {
+      id: `tab-${Date.now()}`,
+      title: 'New Tab',
+      content: 'New tab content'
+    };
+    this.store.dispatch(TabActions.addTab({ tab: newTab }));
+  }
+}
+```
+
+### Available Actions:
+- `TabActions.addTab({ tab })` - Add a new tab
+- `TabActions.removeTab({ id })` - Remove a tab by ID
+- `TabActions.setActiveTab({ id })` - Set the active tab
+- `TabActions.updateTab({ id, updates })` - Update tab properties
+
+### Store Structure:
+- **State**: `src/app/store/tab.reducer.ts`
+- **Actions**: `src/app/store/tab.actions.ts`
+- **Selectors**: `src/app/store/tab.selectors.ts`
+- **DevTools**: Enabled in development mode
 
 ## Testing Considerations
 - **Karma + Jasmine**: Default testing setup
