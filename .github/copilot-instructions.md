@@ -1,226 +1,179 @@
 # Copilot Instructions for PrimeNG Tab Mechanism Project
 
 ## Project Overview
-This is an Angular 19 standalone application designed to implement and experiment with PrimeNG tab functionality. The project uses the latest Angular features including standalone components and modern build tools. PrimeNG 19 and PrimeIcons are installed and configured.
+This is an Angular 19 standalone application implementing a sophisticated nested tab system with PrimeNG and NgRx. The project uses **Angular Signals**, **OnPush change detection**, and modern patterns throughout.
 
 ## Architecture & Key Conventions
 
-### Angular 19 Standalone Architecture
-- **No NgModules**: This project uses standalone components exclusively
-- **Component Structure**: Components use `imports` array instead of module declarations
-- **Bootstrap**: Application bootstrapped via `bootstrapApplication()` in `main.ts`
-- **Routing**: Uses function-based routing with `provideRouter()` in `app.config.ts`
+### Angular 19 Modern Patterns
+- **Standalone Components**: No NgModules, all components use `imports` array
+- **Angular Signals**: `toSignal()` for reactive state from NgRx store
+- **OnPush Change Detection**: All components use `ChangeDetectionStrategy.OnPush`
+- **New Control Flow**: `@if`, `@for`, `@switch` instead of `*ngIf`, `*ngFor`
+- **New Tabs API**: Using `p-tabs`, `p-tablist`, `p-tab`, `p-tabpanels`, `p-tabpanel`
 
 ### Project Structure
 ```
 src/app/
-├── app.component.*     # Root component (standalone)
-├── app.config.ts       # Application configuration & providers
-└── app.routes.ts       # Routing configuration
+├── store/                       # NgRx state management
+│   ├── tab.actions.ts           # Main tab actions
+│   ├── tab.reducer.ts           # Main tab reducer
+│   ├── tab.selectors.ts         # Main tab selectors
+│   ├── inner-tab.actions.ts     # Inner tab actions + InnerTabComponentType enum
+│   ├── inner-tab.reducer.ts     # Inner tab reducer
+│   ├── inner-tab.selectors.ts   # Inner tab selectors
+│   └── index.ts                 # Store exports
+├── shared/
+│   ├── constants.ts             # PARENT_TAB_IDS and type definitions
+│   ├── base-tab-launcher.ts     # Abstract launcher base class (signals-based)
+│   ├── tab-component-registry.ts # Maps enum to component classes
+│   ├── inner-tab-container/     # Generic inner tab container
+│   └── index.ts                 # Shared exports
+├── components/
+│   ├── tasks/                   # Tasks feature
+│   │   ├── tasks.component.*    # Main tasks tab
+│   │   ├── task-launcher/       # Tasks launcher (extends BaseTabLauncher)
+│   │   ├── task-detail/         # Task detail inner tab
+│   │   └── task-form/           # Task form inner tab
+│   └── overview/                # Overview feature
+│       ├── overview.component.* # Main overview tab
+│       ├── overview-launcher/   # Overview launcher (extends BaseTabLauncher)
+│       ├── overview-chart/      # Chart inner tab
+│       └── overview-report/     # Report inner tab
+└── tab-panel/                   # Main tab panel component
 ```
 
 ## Development Workflow
 
 ### Essential Commands
 ```bash
-# Development server (runs on http://localhost:4200)
-npm start
-ng serve
-
-# Build for production
-npm run build
-ng build
-
-# Run tests
-npm test
-ng test
-
-# Generate components (will be standalone by default)
-ng generate component <name>
+npm start          # Dev server at http://localhost:4200
+npm run build      # Production build
+npm test           # Run tests
 ```
 
-### Code Generation Patterns
-- **Components**: Always generated as standalone (`ng g c component-name`)
-- **Styling**: Project uses SCSS (configured in angular.json)
-- **Prefix**: Components use `app-` prefix (configured in angular.json)
+## Key Constants
 
-## PrimeNG Integration ✅ Installed
+### PARENT_TAB_IDS (`src/app/shared/constants.ts`)
+Always use these constants instead of hardcoded strings:
 
-### Current Setup:
-- **PrimeNG 19**: Installed and compatible with Angular 19
-- **PrimeNG Themes**: @primeng/themes package installed (configured via providers, not CSS)
-- **PrimeIcons**: Installed for icon support
-- **Styling**: Modern theme system using JavaScript configuration
-- **NgRx 19**: Store, Effects, and DevTools configured for state management
-
-### Using PrimeNG Components:
 ```typescript
-import { TabViewModule } from 'primeng/tabview';
-import { ButtonModule } from 'primeng/button';
+import { PARENT_TAB_IDS, ParentTabId } from '../shared';
 
-@Component({
-  imports: [CommonModule, TabViewModule, ButtonModule],
-  template: `
-    <p-tabView>
-      <p-tabPanel header="Tab 1">Content 1</p-tabPanel>
-      <p-tabPanel header="Tab 2">Content 2</p-tabPanel>
-    </p-tabView>
-  `
-})
+// Usage
+protected parentTabId = PARENT_TAB_IDS.TASKS;   // 'tasks'
+protected parentTabId = PARENT_TAB_IDS.OVERVIEW; // 'overview'
 ```
 
-### Tab Implementation Patterns
+## Angular Signals Pattern
 
-#### Basic Static Tabs:
-```html
-<p-tabView>
-  <p-tabPanel header="Overview" leftIcon="pi pi-info-circle">
-    <p>Overview content here</p>
-  </p-tabPanel>
-  <p-tabPanel header="Details" leftIcon="pi pi-list">
-    <p>Details content here</p>
-  </p-tabPanel>
-</p-tabView>
-```
-
-#### Dynamic Tabs:
+### Converting Store Selectors to Signals
 ```typescript
-tabs = [
-  { title: 'Tab 1', content: 'Content 1', icon: 'pi pi-home' },
-  { title: 'Tab 2', content: 'Content 2', icon: 'pi pi-user', disabled: false }
-];
-```
-
-```html
-<p-tabView (onChange)="onTabChange($event)">
-  <p-tabPanel 
-    *ngFor="let tab of tabs" 
-    [header]="tab.title" 
-    [leftIcon]="tab.icon"
-    [disabled]="tab.disabled">
-    {{ tab.content }}
-  </p-tabPanel>
-</p-tabView>
-```
-
-## State Management with NgRx ✅ Configured
-
-### Tab State Structure:
-```typescript
-interface TabItem {
-  id: string;
-  title: string;
-  content: string;
-  icon?: string;
-  disabled?: boolean;
-  closable?: boolean;
-}
-
-interface TabState {
-  tabs: TabItem[];
-  activeTabId: string | null;
-}
-```
-
-### Using Tab State in Components:
-```typescript
+import { toSignal } from '@angular/core/rxjs-interop';
+import { inject, Signal } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { selectAllTabs, selectActiveTab, TabActions } from './store';
+
+export class MyComponent {
+  private store = inject(Store);
+
+  // Signal from store selector
+  readonly tabs: Signal<TabItem[]> = toSignal(
+    this.store.select(selectAllTabs),
+    { initialValue: [] }
+  );
+
+  // Usage in template: {{ tabs().length }}
+  // Usage in code: const count = this.tabs().length;
+}
+```
+
+### Lazy Signal Initialization (for abstract classes)
+When `parentTabId` is abstract and set by subclass:
+
+```typescript
+private _currentTabs?: Signal<InnerTabItem[]>;
+
+protected get currentTabs(): Signal<InnerTabItem[]> {
+  if (!this._currentTabs) {
+    this._currentTabs = toSignal(
+      this.store.select(selectInnerTabs(this.parentTabId)),
+      { initialValue: [] }
+    );
+  }
+  return this._currentTabs;
+}
+
+// Usage: this.currentTabs() - with parentheses!
+```
+
+## PrimeNG New Tabs API
+
+### Structure
+```html
+<p-tabs [value]="activeTabId()" (valueChange)="onTabValueChange($any($event))">
+  <p-tablist>
+    @for (tab of tabs(); track tab.id) {
+      <p-tab [value]="tab.id">{{ tab.title }}</p-tab>
+    }
+  </p-tablist>
+  <p-tabpanels>
+    @for (tab of tabs(); track tab.id) {
+      <p-tabpanel [value]="tab.id">{{ tab.content }}</p-tabpanel>
+    }
+  </p-tabpanels>
+</p-tabs>
+```
+
+### Key Differences from Deprecated TabView
+| Old (TabView) | New (Tabs) |
+|---------------|------------|
+| `[(activeIndex)]` | `[value]` (string/number ID) |
+| `(activeIndexChange)` | `(valueChange)` |
+| `<p-tabView>` | `<p-tabs>` |
+| `<p-tabPanel header="">` | `<p-tab>` + `<p-tabpanel>` |
+
+## Nested Tab System
+
+### Architecture Overview
+```
+TabPanelComponent (main tabs)
+├── TasksComponent → InnerTabContainerComponent
+│   ├── TaskLauncherComponent (static, non-closable)
+│   ├── TaskDetailComponent (dynamic, closable)
+│   └── TaskFormComponent (dynamic, closable)
+└── OverviewComponent → InnerTabContainerComponent
+    ├── OverviewLauncherComponent (static, non-closable)
+    ├── OverviewChartComponent (dynamic, closable)
+    └── OverviewReportComponent (dynamic, closable)
+```
+
+### BaseTabLauncher (Abstract Base Class)
+
+All launcher components extend this:
+
+```typescript
+import { PARENT_TAB_IDS } from '../../../shared';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   // ...
 })
-export class TabComponent {
-  tabs$ = this.store.select(selectAllTabs);
-  activeTab$ = this.store.select(selectActiveTab);
-
-  constructor(private store: Store) {}
-
-  onTabChange(event: any) {
-    const tabId = this.tabs[event.index].id;
-    this.store.dispatch(TabActions.setActiveTab({ id: tabId }));
-  }
-
-  addNewTab() {
-    const newTab: TabItem = {
-      id: `tab-${Date.now()}`,
-      title: 'New Tab',
-      content: 'New tab content'
-    };
-    this.store.dispatch(TabActions.addTab({ tab: newTab }));
-  }
-}
-```
-
-### Available Actions:
-- `TabActions.addTab({ tab })` - Add a new tab
-- `TabActions.removeTab({ id })` - Remove a tab by ID
-- `TabActions.setActiveTab({ id })` - Set the active tab
-- `TabActions.updateTab({ id, updates })` - Update tab properties
-
-### Store Structure:
-- **State**: `src/app/store/tab.reducer.ts`
-- **Actions**: `src/app/store/tab.actions.ts`
-- **Selectors**: `src/app/store/tab.selectors.ts`
-- **DevTools**: Enabled in development mode
-
-## Nested/Inner Tab System ✅ Implemented
-
-The project features a reusable nested tab architecture where main tabs (like Tasks, Overview) contain their own inner tab systems. This is managed through NgRx store and a component registry pattern.
-
-### Architecture Overview:
-```
-Main Tabs (TabPanel)
-└── Tasks Tab
-    └── InnerTabContainerComponent
-        ├── TaskLauncherComponent (static, non-closable)
-        ├── TaskDetailComponent (dynamic, closable)
-        └── TaskFormComponent (dynamic, closable)
-└── Overview Tab
-    └── InnerTabContainerComponent
-        ├── OverviewLauncherComponent (static, non-closable)
-        ├── OverviewChartComponent (dynamic, closable)
-        └── OverviewReportComponent (dynamic, closable)
-```
-
-### Key Components:
-
-#### 1. InnerTabContainerComponent
-Generic, reusable container for inner tabs. Located at `src/app/shared/inner-tab-container/`.
-
-```html
-<app-inner-tab-container
-  [parentTabId]="'tasks'"
-  [launcherComponent]="TaskLauncherComponent"
-  [launcherComponentType]="InnerTabComponentType.TaskLauncher"
-  [launcherTitle]="'Task Home'"
-  [launcherIcon]="'pi pi-home'">
-</app-inner-tab-container>
-```
-
-#### 2. BaseTabLauncher Abstract Class
-Base class for all launcher components. Located at `src/app/shared/base-tab-launcher.ts`.
-
-Features:
-- Store-synced tab state via `currentTabs` property
-- `canOpenTab()` method for custom validation (override in subclasses)
-- `isTabTypeOpen()` and `findTabByType()` for checking existing tabs
-- `focusExistingTab()` to navigate to an existing tab
-- `singleton` property support for single-instance tabs
-
-```typescript
 export class TaskLauncherComponent extends BaseTabLauncher {
-  protected parentTabId = 'tasks';
-  
-  // Override for custom validation logic
-  protected override canOpenTab(componentType: InnerTabComponentType, config: InnerTabConfig): boolean {
-    // Example: Limit TaskDetail tabs to 5
+  protected parentTabId = PARENT_TAB_IDS.TASKS;
+
+  // currentTabs is a Signal - use () to access value
+  protected override canOpenTab(
+    componentType: InnerTabComponentType,
+    config: InnerTabConfig
+  ): boolean {
     if (componentType === InnerTabComponentType.TaskDetail) {
-      return this.currentTabs.filter(t => t.componentType === componentType).length < 5;
+      return this.currentTabs().filter(
+        t => t.componentType === componentType
+      ).length < 5;
     }
     return true;
   }
-  
+
   openNewTask(): void {
     this.openInnerTab({
       id: 'task-new-form',
@@ -228,180 +181,139 @@ export class TaskLauncherComponent extends BaseTabLauncher {
       componentType: InnerTabComponentType.TaskForm,
       icon: 'pi pi-plus',
       closable: true,
-      singleton: true,  // Only one instance can be open
+      singleton: true,
       data: { mode: 'create' }
     });
   }
 }
 ```
 
+### Available BaseTabLauncher Methods
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `openInnerTab(config)` | `boolean` | Opens new tab, handles singleton logic |
+| `focusExistingTab(id)` | `void` | Activates an existing tab |
+| `closeInnerTab(id)` | `void` | Closes a tab |
+| `findTabById(id)` | `InnerTabItem?` | Find tab by ID |
+| `findTabByType(type)` | `InnerTabItem?` | Find tab by component type |
+| `isTabTypeOpen(type)` | `boolean` | Check if type is open |
+| `generateTabId(prefix)` | `string` | Generate unique ID |
+| `currentTabs` | `Signal<InnerTabItem[]>` | Signal of current tabs |
+
 ### Singleton Tab Pattern
-Tabs can be configured to only allow one instance at a time:
 
 ```typescript
-// In InnerTabConfig
-singleton?: boolean;  // If true, only one instance can exist
-
-// Usage patterns:
-// 1. Singleton by type (only one "New Task" form)
+// Only one instance allowed
 this.openInnerTab({
   id: 'task-new-form',
-  componentType: InnerTabComponentType.TaskForm,
   singleton: true,  // Will focus existing if already open
-  ...
+  // ...
 });
 
-// 2. Unique by ID (one detail per task, but multiple details allowed)
+// Unique by ID (multiple details, but one per task)
 const existingTab = this.findTabById(`task-detail-${taskId}`);
 if (existingTab) {
   this.focusExistingTab(existingTab.id);
   return;
 }
 this.openInnerTab({ id: `task-detail-${taskId}`, ... });
-
-// 3. Custom validation via canOpenTab override
-protected override canOpenTab(componentType, config): boolean {
-  // Limit number of tabs, check permissions, etc.
-  return true;
-}
-```
-
-#### 3. Tab Component Registry
-Maps component types to Angular components. Located at `src/app/shared/tab-component-registry.ts`.
-
-```typescript
-export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<unknown>>> = {
-  [InnerTabComponentType.TaskLauncher]: TaskLauncherComponent,
-  [InnerTabComponentType.TaskDetail]: TaskDetailComponent,
-  [InnerTabComponentType.TaskForm]: TaskFormComponent,
-  [InnerTabComponentType.OverviewLauncher]: OverviewLauncherComponent,
-  [InnerTabComponentType.OverviewChart]: OverviewChartComponent,
-  [InnerTabComponentType.OverviewReport]: OverviewReportComponent,
-};
 ```
 
 ### InnerTabComponentType Enum
-All inner tab component types are defined in `src/app/store/inner-tab.actions.ts`:
 
 ```typescript
 export enum InnerTabComponentType {
-  // Task-related inner tabs
   TaskLauncher = 'task-launcher',
   TaskDetail = 'task-detail',
   TaskForm = 'task-form',
-  
-  // Overview-related inner tabs
   OverviewLauncher = 'overview-launcher',
   OverviewChart = 'overview-chart',
   OverviewReport = 'overview-report',
-  
-  // Generic/shared inner tabs
   GenericLauncher = 'generic-launcher',
   Settings = 'settings'
 }
 ```
 
-### Inner Tab Store Actions:
-- `InnerTabActions.initContext({ parentTabId, launcherTab })` - Initialize inner tab context
-- `InnerTabActions.addInnerTab({ parentTabId, tab })` - Add a new inner tab
-- `InnerTabActions.removeInnerTab({ parentTabId, tabId })` - Remove an inner tab
-- `InnerTabActions.setActiveInnerTab({ parentTabId, tabId })` - Set active inner tab
-- `InnerTabActions.clearContext({ parentTabId })` - Clear entire context
+### Adding New Inner Tab Features
 
-### Creating New Inner Tab Features:
+1. **Add to Enum**: `InnerTabComponentType` in `inner-tab.actions.ts`
+2. **Create Component**: With `@Input() tabData`, `@Input() tabId`, `@Input() parentTabId`
+3. **Register**: Add to `TAB_COMPONENT_REGISTRY` in `tab-component-registry.ts`
+4. **Use**: Call `this.openInnerTab()` from launcher
 
-1. **Add to Enum**: Add new type to `InnerTabComponentType` in `inner-tab.actions.ts`
-2. **Create Component**: Create your component with `@Input() tabData` and `@Input() tabId`
-3. **Register Component**: Add to `TAB_COMPONENT_REGISTRY` in `tab-component-registry.ts`
-4. **Use in Launcher**: Call `this.openInnerTab()` from your launcher with the new type
+## Inner Tab Store Actions
 
-### Project Structure:
-```
-src/app/
-├── store/
-│   ├── tab.actions.ts          # Main tab actions
-│   ├── tab.reducer.ts          # Main tab reducer
-│   ├── tab.selectors.ts        # Main tab selectors
-│   ├── inner-tab.actions.ts    # Inner tab actions + enum
-│   ├── inner-tab.reducer.ts    # Inner tab reducer
-│   ├── inner-tab.selectors.ts  # Inner tab selectors
-│   └── index.ts                # Store exports
-├── shared/
-│   ├── base-tab-launcher.ts    # Abstract launcher base class
-│   ├── tab-component-registry.ts
-│   └── inner-tab-container/    # Generic inner tab container
-├── components/
-│   ├── tasks/
-│   │   ├── tasks.component.*   # Main tasks tab
-│   │   ├── task-launcher/      # Tasks inner tab launcher
-│   │   ├── task-detail/        # Task detail inner tab
-│   │   └── task-form/          # Task form inner tab
-│   └── overview/
-│       ├── overview.component.* # Main overview tab
-│       ├── overview-launcher/   # Overview inner tab launcher
-│       ├── overview-chart/      # Chart inner tab
-│       └── overview-report/     # Report inner tab
-└── tab-panel/                   # Main tab panel component
+```typescript
+InnerTabActions.initContext({ parentTabId, launcherTab })
+InnerTabActions.addInnerTab({ parentTabId, tab })
+InnerTabActions.removeInnerTab({ parentTabId, tabId })
+InnerTabActions.setActiveInnerTab({ parentTabId, tabId })
+InnerTabActions.updateInnerTab({ parentTabId, tabId, updates })
+InnerTabActions.clearContext({ parentTabId })
 ```
 
-## Testing Considerations
-- **Karma + Jasmine**: Default testing setup
-- **Component Testing**: Test tab switching behavior and dynamic content loading
-- **Accessibility**: Ensure proper ARIA attributes for tab navigation
+## Component Template Pattern
 
-## Build Configuration
-- **Bundle Size Limits**: 
-  - Initial: 500kB warning, 1MB error
-  - Component styles: 4kB warning, 8kB error
-- **Source Maps**: Enabled in development
-- **Output**: `dist/primeng-tab-mechanism/`
-
-## Common Patterns to Follow
-
-### Component Structure
 ```typescript
 @Component({
   selector: 'app-feature',
-  imports: [CommonModule, /* PrimeNG modules */],
+  imports: [CommonModule, TabsModule, ButtonModule],
   templateUrl: './feature.component.html',
-  styleUrl: './feature.component.scss'
+  styleUrl: './feature.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush  // Always use!
 })
 export class FeatureComponent {
-  // Implementation
+  private store = inject(Store);
+  
+  // Signals instead of observables
+  readonly data = toSignal(this.store.select(selectData), { initialValue: [] });
 }
 ```
 
-### Modern SCSS Imports (Use @use instead of @import)
-```scss
-@use 'primeicons/primeicons.css';
+## Template Pattern
+
+```html
+<!-- Use signals with () -->
+@if (data().length > 0) {
+  @for (item of data(); track item.id) {
+    <div>{{ item.name }}</div>
+  }
+}
+
+<!-- Switch for tab content routing -->
+@switch (tab.id) {
+  @case (PARENT_TAB_IDS.TASKS) {
+    <app-tasks></app-tasks>
+  }
+  @case (PARENT_TAB_IDS.OVERVIEW) {
+    <app-overview></app-overview>
+  }
+}
 ```
 
-### Theme Configuration
-PrimeNG 19 uses JavaScript-based themes configured via providers in `app.config.ts`:
+## Theme Configuration
+
 ```typescript
+// app.config.ts
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     providePrimeNG({ theme: { preset: Aura } }),
-    // other providers
+    provideStore({
+      [tabFeature.name]: tabFeature.reducer,
+      [innerTabFeature.name]: innerTabFeature.reducer
+    }),
+    provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() })
   ]
 };
 ```
 
-### Tab Data Structure
-```typescript
-interface TabItem {
-  header: string;
-  content?: string;
-  disabled?: boolean;
-  closable?: boolean;
-}
-```
+## Performance Best Practices
 
-## Performance Notes
-- Consider virtual scrolling for large numbers of tabs
-- Implement lazy loading for heavy tab content
-- Use OnPush change detection strategy for better performance
-- Keep bundle size in mind when adding PrimeNG components
+1. **Always use OnPush**: `changeDetection: ChangeDetectionStrategy.OnPush`
+2. **Use Signals**: Replace `async` pipe with `toSignal()`
+3. **Track items**: Always use `track` in `@for` loops
+4. **Lazy loading**: Heavy tab content should load on demand
+5. **Constants over strings**: Use `PARENT_TAB_IDS` instead of `'tasks'`

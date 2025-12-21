@@ -1,12 +1,12 @@
 <div class="inner-tab-container">
-  @if (innerTabs$ | async; as tabs) {
+  @if (innerTabs().length > 0) {
     <p-tabs 
-      [value]="activeTabId ?? ''"
+      [value]="activeTabId() ?? ''"
       (valueChange)="onTabValueChange($any($event))"
       styleClass="inner-tabs">
       
       <p-tablist>
-        @for (tab of tabs; track tab.id) {
+        @for (tab of innerTabs(); track tab.id) {
           <p-tab [value]="tab.id" class="inner-tab-header">
             @if (tab.icon) {
               <i [class]="tab.icon"></i>
@@ -25,11 +25,11 @@
       </p-tablist>
       
       <p-tabpanels>
-        @for (tab of tabs; track tab.id) {
+        @for (tab of innerTabs(); track tab.id) {
           <p-tabpanel [value]="tab.id">
             <div class="inner-tab-content">
               @if (getComponent(tab); as component) {
-                <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id }"></ng-container>
+                <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id, parentTabId: parentTabId }"></ng-container>
               } @else {
                 <div class="no-component-warning">
                   <i class="pi pi-exclamation-triangle"></i>

@@ -1,9 +1,9 @@
-import { Component, Input, OnInit, OnDestroy, ComponentRef, Type, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
 import { ButtonModule } from 'primeng/button';
 import { Store } from '@ngrx/store';
-import { Observable, Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { 
   InnerTabItem, 
   InnerTabActions, 
@@ -12,15 +12,17 @@ import {
   selectActiveInnerTabId
 } from '../../store';
 import { getTabComponent } from '../tab-component-registry';
+import { ParentTabId } from '../constants';
 
 /**
  * Generic container component for inner tabs.
  * This component manages a set of inner tabs within a parent tab context.
+ * Uses Angular Signals for reactive state management.
  * 
  * @example
  * ```html
  * <app-inner-tab-container
- *   [parentTabId]="'tasks'"
+ *   [parentTabId]="PARENT_TAB_IDS.TASKS"
  *   [launcherComponent]="TaskLauncherComponent"
  *   [launcherComponentType]="InnerTabComponentType.TaskLauncher">
  * </app-inner-tab-container>
@@ -30,13 +32,16 @@ import { getTabComponent } from '../tab-component-registry';
   selector: 'app-inner-tab-container',
   imports: [CommonModule, TabsModule, ButtonModule],
   templateUrl: './inner-tab-container.component.html',
-  styleUrl: './inner-tab-container.component.scss'
+  styleUrl: './inner-tab-container.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InnerTabContainerComponent implements OnInit, OnDestroy {
+export class InnerTabContainerComponent {
+  private readonly store = inject(Store);
+
   /**
    * The ID of the parent tab this container belongs to.
    */
-  @Input({ required: true }) parentTabId!: string;
+  @Input({ required: true }) parentTabId!: ParentTabId;
 
   /**
    * The component class to use for the launcher tab.
@@ -59,66 +64,54 @@ export class InnerTabContainerComponent implements OnInit, OnDestroy {
   @Input() launcherIcon: string = 'pi pi-home';
 
   /**
-   * Observable of inner tabs for this parent.
+   * Signal containing inner tabs for this parent.
+   * Initialized lazily due to parentTabId being an Input.
    */
-  innerTabs$!: Observable<InnerTabItem[]>;
-
-  /**
-   * Observable of the active tab ID.
-   */
-  activeTabId$!: Observable<string | null>;
-
-  /**
-   * Current active tab ID for binding.
-   */
-  activeTabId: string | null = null;
-
-  /**
-   * Subject for cleanup on destroy.
-   */
-  private destroy$ = new Subject<void>();
-
-  /**
-   * Map to track component refs for cleanup.
-   */
-  private componentRefs: Map<string, ComponentRef<unknown>> = new Map();
-
-  constructor(
-    private store: Store,
-    private cdr: ChangeDetectorRef
-  ) {}
-
-  ngOnInit(): void {
-    // Initialize the inner tab context with the launcher tab
-    this.initializeContext();
-
-    // Set up observables
-    this.innerTabs$ = this.store.select(selectInnerTabs(this.parentTabId));
-    this.activeTabId$ = this.store.select(selectActiveInnerTabId(this.parentTabId));
-
-    // Subscribe to active tab ID changes
-    this.activeTabId$
-      .pipe(
-        takeUntil(this.destroy$),
-        distinctUntilChanged()
-      )
-      .subscribe(tabId => {
-        console.log('[InnerTabContainer] Active tab ID changed to:', tabId);
-        if (this.activeTabId !== tabId) {
-          this.activeTabId = tabId;
-          this.cdr.markForCheck();
-          this.cdr.detectChanges();
-        }
-      });
+  private _innerTabs?: Signal<InnerTabItem[]>;
+  
+  get innerTabs(): Signal<InnerTabItem[]> {
+    if (!this._innerTabs) {
+      this._innerTabs = toSignal(
+        this.store.select(selectInnerTabs(this.parentTabId)),
+        { initialValue: [] }
+      );
+    }
+    return this._innerTabs;
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    
-    // Clean up component refs
-    this.componentRefs.forEach(ref => ref.destroy());
-    this.componentRefs.clear();
+  /**
+   * Signal containing the active tab ID.
+   * Initialized lazily due to parentTabId being an Input.
+   */
+  private _activeTabId?: Signal<string | null>;
+  
+  get activeTabId(): Signal<string | null> {
+    if (!this._activeTabId) {
+      this._activeTabId = toSignal(
+        this.store.select(selectActiveInnerTabId(this.parentTabId)),
+        { initialValue: null }
+      );
+    }
+    return this._activeTabId;
+  }
+
+  /**
+   * Flag to track if context has been initialized.
+   */
+  private contextInitialized = false;
+
+  constructor() {
+    // Use effect to initialize context when parentTabId becomes available
+    effect(() => {
+      // Access the signal to establish dependency
+      const tabs = this.innerTabs();
+      
+      // Initialize context only once when we have the parentTabId
+      if (!this.contextInitialized && this.parentTabId) {
+        this.initializeContext();
+        this.contextInitialized = true;
+      }
+    });
   }
 
   /**
@@ -145,8 +138,7 @@ export class InnerTabContainerComponent implements OnInit, OnDestroy {
    * The value is the tab ID string.
    */
   onTabValueChange(tabId: string): void {
-    console.log('[InnerTabContainer] onTabValueChange - user selected tab:', tabId);
-    if (tabId && tabId !== this.activeTabId) {
+    if (tabId && tabId !== this.activeTabId()) {
       this.store.dispatch(InnerTabActions.setActiveInnerTab({
         parentTabId: this.parentTabId,
         tabId
@@ -174,12 +166,5 @@ export class InnerTabContainerComponent implements OnInit, OnDestroy {
       return this.launcherComponent;
     }
     return getTabComponent(tab.componentType);
-  }
-
-  /**
-   * TrackBy function for ngFor optimization.
-   */
-  trackByTabId(index: number, tab: InnerTabItem): string {
-    return tab.id;
   }
 }

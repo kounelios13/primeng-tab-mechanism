@@ -1,20 +1,40 @@
 <div class="tab-panel-container">
-  <p-tabView (onChange)="onTabChange($event)" styleClass="custom-tabview">
-    <p-tabPanel 
-      *ngFor="let tab of tabs$ | async" 
-      [header]="tab.title"
-      [leftIcon]="tab.icon!"
-      [disabled]="tab.disabled!">
-      
-      <div class="tab-content">
-        <ng-container [ngSwitch]="tab.id">
-          <app-tasks *ngSwitchCase="'tasks'"></app-tasks>
-          <app-overview *ngSwitchCase="'overview'"></app-overview>
-          <div *ngSwitchDefault class="default-content">
-            <p>{{ tab.content }}</p>
+  <p-tabs 
+    [value]="activeTabId() ?? ''"
+    (valueChange)="onTabValueChange($any($event))"
+    styleClass="custom-tabview">
+    
+    <p-tablist>
+      @for (tab of tabs(); track tab.id) {
+        <p-tab [value]="tab.id" [disabled]="tab.disabled ?? false">
+          @if (tab.icon) {
+            <i [class]="tab.icon"></i>
+          }
+          <span>{{ tab.title }}</span>
+        </p-tab>
+      }
+    </p-tablist>
+    
+    <p-tabpanels>
+      @for (tab of tabs(); track tab.id) {
+        <p-tabpanel [value]="tab.id">
+          <div class="tab-content">
+            @switch (tab.id) {
+              @case (PARENT_TAB_IDS.TASKS) {
+                <app-tasks></app-tasks>
+              }
+              @case (PARENT_TAB_IDS.OVERVIEW) {
+                <app-overview></app-overview>
+              }
+              @default {
+                <div class="default-content">
+                  <p>{{ tab.content }}</p>
+                </div>
+              }
+            }
           </div>
-        </ng-container>
-      </div>
-    </p-tabPanel>
-  </p-tabView>
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
 </div>

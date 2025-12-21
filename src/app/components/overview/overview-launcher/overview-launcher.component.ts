@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { BaseTabLauncher } from '../../../shared';
+import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
 import { InnerTabComponentType } from '../../../store';
 
 /**
@@ -13,10 +13,11 @@ import { InnerTabComponentType } from '../../../store';
   selector: 'app-overview-launcher',
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './overview-launcher.component.html',
-  styleUrl: './overview-launcher.component.scss'
+  styleUrl: './overview-launcher.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OverviewLauncherComponent extends BaseTabLauncher {
-  protected parentTabId = 'overview';
+  protected parentTabId = PARENT_TAB_IDS.OVERVIEW;
 
   // Sample stats for demonstration
   stats = {

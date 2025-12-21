@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { InnerTabContainerComponent } from '../../shared/inner-tab-container/inner-tab-container.component';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { OverviewLauncherComponent } from './overview-launcher/overview-launcher.component';
 import { InnerTabComponentType } from '../../store';
 
@@ -11,9 +11,15 @@ import { InnerTabComponentType } from '../../store';
   selector: 'app-overview',
   imports: [InnerTabContainerComponent],
   templateUrl: './overview.component.html',
-  styleUrl: './overview.component.scss'
+  styleUrl: './overview.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OverviewComponent {
+  /**
+   * Parent tab ID constant for template binding.
+   */
+  readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
+
   /**
    * The launcher component type for the overview inner tabs.
    */
