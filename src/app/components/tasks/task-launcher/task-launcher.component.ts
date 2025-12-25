@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -27,11 +27,13 @@ export class TaskLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.TASKS;
 
   /**
-   * Initialize the component registry with task-specific components.
+   * Static method that returns the component registry for task-related components.
    */
-  protected initializeComponentRegistry(): void {
-    this.registerComponent(InnerTabComponentType.TaskDetail, TaskDetailComponent);
-    this.registerComponent(InnerTabComponentType.TaskForm, TaskFormComponent);
+  static override getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
+    const registry = new Map<InnerTabComponentType, Type<unknown>>();
+    registry.set(InnerTabComponentType.TaskDetail, TaskDetailComponent);
+    registry.set(InnerTabComponentType.TaskForm, TaskFormComponent);
+    return registry;
   }
 
   // Sample task data for demonstration

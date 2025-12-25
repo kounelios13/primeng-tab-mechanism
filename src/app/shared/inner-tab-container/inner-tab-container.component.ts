@@ -1,4 +1,4 @@
-import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, EnvironmentInjector, createComponent, ViewContainerRef, viewChild } from '@angular/core';
+import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, EnvironmentInjector, OnInit, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
@@ -35,9 +35,10 @@ import { BaseTabLauncher } from '../base-tab-launcher';
   styleUrl: './inner-tab-container.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InnerTabContainerComponent {
+export class InnerTabContainerComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly environmentInjector = inject(EnvironmentInjector);
+  private readonly injector = inject(Injector);
 
   /**
    * The ID of the parent tab this container belongs to.
@@ -46,6 +47,7 @@ export class InnerTabContainerComponent {
 
   /**
    * The component class to use for the launcher tab.
+   * Must extend BaseTabLauncher to provide the component registry.
    */
   @Input({ required: true }) launcherComponent!: Type<BaseTabLauncher>;
 
@@ -65,67 +67,71 @@ export class InnerTabContainerComponent {
   @Input() launcherIcon: string = 'pi pi-home';
 
   /**
-   * Reference to the launcher instance to access its component registry.
+   * Lazy-loaded component registry from the launcher.
    */
-  private launcherInstance?: BaseTabLauncher;
+  private _componentRegistry?: Map<InnerTabComponentType, Type<unknown>>;
+
+  /**
+   * Gets the component registry from the launcher class.
+   */
+  private get componentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
+    if (!this._componentRegistry && this.launcherComponent) {
+      // Access the static method through the constructor
+      const launcherClass = this.launcherComponent as any;
+      if (launcherClass.getComponentRegistry) {
+        this._componentRegistry = launcherClass.getComponentRegistry();
+      } else {
+        this._componentRegistry = new Map();
+      }
+    }
+    return this._componentRegistry || new Map();
+  }
 
   /**
    * Signal containing inner tabs for this parent.
-   * Initialized lazily due to parentTabId being an Input.
+   * Initialized in constructor after parentTabId is available.
    */
-  private _innerTabs?: Signal<InnerTabItem[]>;
+  protected innerTabs!: Signal<InnerTabItem[]>;
   
-  get innerTabs(): Signal<InnerTabItem[]> {
-    if (!this._innerTabs) {
-      this._innerTabs = toSignal(
-        this.store.select(selectInnerTabs(this.parentTabId)),
-        { initialValue: [] }
-      );
-    }
-    return this._innerTabs;
-  }
-
   /**
    * Signal containing the active tab ID.
-   * Initialized lazily due to parentTabId being an Input.
+   * Initialized in constructor after parentTabId is available.
    */
-  private _activeTabId?: Signal<string | null>;
-  
-  get activeTabId(): Signal<string | null> {
-    if (!this._activeTabId) {
-      this._activeTabId = toSignal(
-        this.store.select(selectActiveInnerTabId(this.parentTabId)),
-        { initialValue: null }
-      );
-    }
-    return this._activeTabId;
-  }
+  protected activeTabId!: Signal<string | null>;
 
   /**
    * Flag to track if context has been initialized.
    */
   private contextInitialized = false;
 
-  constructor() {
-    // Use effect to initialize context when parentTabId becomes available
-    effect(() => {
-      // Access the signal to establish dependency
-      const tabs = this.innerTabs();
-      
-      // Initialize context only once when we have the parentTabId
-      if (!this.contextInitialized && this.parentTabId) {
-        this.initializeContext();
-        this.contextInitialized = true;
-      }
+  ngOnInit(): void {
+    // Initialize signals in injection context
+    runInInjectionContext(this.injector, () => {
+      this.innerTabs = toSignal(
+        this.store.select(selectInnerTabs(this.parentTabId)),
+        { initialValue: [] }
+      );
+      this.activeTabId = toSignal(
+        this.store.select(selectActiveInnerTabId(this.parentTabId)),
+        { initialValue: null }
+      );
     });
 
-    // Create launcher instance to access its component registry
+    // Initialize context after signals are ready
+    if (!this.contextInitialized && this.parentTabId) {
+      this.initializeContext();
+      this.contextInitialized = true;
+    }
+  }
+
+  constructor() {
+    // Use effect to reactively update when tabs change
+    // Note: innerTabs signal must be initialized in ngOnInit before this effect runs
     effect(() => {
-      if (this.launcherComponent && !this.launcherInstance) {
-        const componentRef = createComponent(this.launcherComponent, {
-          environmentInjector: this.environmentInjector
-        });
-        this.launcherInstance = componentRef.instance as BaseTabLauncher;
+      // Access the signal to establish dependency (only after ngOnInit)
+      if (this.innerTabs) {
+        const tabs = this.innerTabs();
+        // Effect will run when tabs change
       }
     });
   }
@@ -181,7 +187,7 @@ export class InnerTabContainerComponent {
     if (tab.componentType === this.launcherComponentType) {
       return this.launcherComponent;
     }
-    // Get component from launcher's registry
-    return this.launcherInstance?.getComponentFromRegistry(tab.componentType);
+    // Get component from launcher's static registry
+    return this.componentRegistry.get(tab.componentType);
   }
 }

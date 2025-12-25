@@ -11,6 +11,17 @@ import {
 import { ParentTabId } from './constants';
 
 /**
+ * Interface for components that can provide a component registry.
+ */
+export interface ComponentRegistryProvider {
+  /**
+   * Gets the component registry for this launcher.
+   * Must be a static method that returns the registry.
+   */
+  getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>>;
+}
+
+/**
  * Abstract base class for tab launcher components.
  * Extend this class in your launcher components to get access to
  * common inner tab management functionality.
@@ -26,9 +37,11 @@ import { ParentTabId } from './constants';
  * export class TaskLauncherComponent extends BaseTabLauncher {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
  * 
- *   protected initializeComponentRegistry(): void {
- *     this.registerComponent(InnerTabComponentType.TaskDetail, TaskDetailComponent);
- *     this.registerComponent(InnerTabComponentType.TaskForm, TaskFormComponent);
+ *   static override getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
+ *     const registry = new Map();
+ *     registry.set(InnerTabComponentType.TaskDetail, TaskDetailComponent);
+ *     registry.set(InnerTabComponentType.TaskForm, TaskFormComponent);
+ *     return registry;
  *   }
  * 
  *   openNewTaskForm(): void {
@@ -45,7 +58,7 @@ import { ParentTabId } from './constants';
  * ```
  */
 @Directive()
-export abstract class BaseTabLauncher {
+export abstract class BaseTabLauncher implements ComponentRegistryProvider {
   /**
    * The ID of the parent tab this launcher belongs to.
    * Must be set by the extending class using PARENT_TAB_IDS constants.
@@ -53,17 +66,23 @@ export abstract class BaseTabLauncher {
   protected abstract parentTabId: ParentTabId;
 
   /**
-   * Component registry mapping InnerTabComponentType to component classes.
-   * Populated by the initializeComponentRegistry() method.
+   * Static method that returns the component registry for this launcher.
+   * Child classes must override this method to provide their specific registry.
+   * This is a static method so it can be called without creating an instance.
+   * 
+   * @returns A Map containing the component registry
    */
-  protected componentRegistry: Map<InnerTabComponentType, Type<unknown>> = new Map();
+  static getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
+    return new Map();
+  }
 
   /**
-   * Abstract method that must be implemented by child classes to register
-   * their specific inner tab components.
-   * This method is called during construction.
+   * Instance method that delegates to the static method.
+   * Allows accessing the registry from an instance if needed.
    */
-  protected abstract initializeComponentRegistry(): void;
+  getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
+    return (this.constructor as typeof BaseTabLauncher).getComponentRegistry();
+  }
 
   /**
    * Data passed from the inner tab system via ngComponentOutlet.
@@ -80,13 +99,6 @@ export abstract class BaseTabLauncher {
    * NgRx Store instance, injected automatically.
    */
   protected store = inject(Store);
-
-  /**
-   * Constructor that initializes the component registry.
-   */
-  constructor() {
-    this.initializeComponentRegistry();
-  }
 
   /**
    * Signal containing current inner tabs from store.
@@ -244,27 +256,5 @@ export abstract class BaseTabLauncher {
    */
   protected generateTabId(prefix: string = 'tab'): string {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-  }
-
-  /**
-   * Registers a component in the component registry.
-   * Called by child classes in their initializeComponentRegistry() implementation.
-   * 
-   * @param componentType - The InnerTabComponentType enum value
-   * @param component - The component class to register
-   */
-  protected registerComponent(componentType: InnerTabComponentType, component: Type<unknown>): void {
-    this.componentRegistry.set(componentType, component);
-  }
-
-  /**
-   * Gets a component from the registry by its type.
-   * Used by the InnerTabContainerComponent to resolve dynamic components.
-   * 
-   * @param componentType - The InnerTabComponentType enum value
-   * @returns The component class or undefined if not registered
-   */
-  getComponentFromRegistry(componentType: InnerTabComponentType): Type<unknown> | undefined {
-    return this.componentRegistry.get(componentType);
   }
 }
