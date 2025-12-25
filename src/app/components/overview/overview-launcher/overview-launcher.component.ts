@@ -4,6 +4,8 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
 import { InnerTabComponentType } from '../../../store';
+import { OverviewChartComponent } from '../overview-chart/overview-chart.component';
+import { OverviewReportComponent } from '../overview-report/overview-report.component';
 
 /**
  * Launcher component for the Overview inner tab system.
@@ -18,6 +20,14 @@ import { InnerTabComponentType } from '../../../store';
 })
 export class OverviewLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.OVERVIEW;
+
+  /**
+   * Initialize the component registry with overview-specific components.
+   */
+  protected initializeComponentRegistry(): void {
+    this.registerComponent(InnerTabComponentType.OverviewChart, OverviewChartComponent);
+    this.registerComponent(InnerTabComponentType.OverviewReport, OverviewReportComponent);
+  }
 
   // Sample stats for demonstration
   stats = {

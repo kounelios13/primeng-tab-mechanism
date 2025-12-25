@@ -1,4 +1,4 @@
-import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, EnvironmentInjector, createComponent, ViewContainerRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
@@ -11,8 +11,8 @@ import {
   selectInnerTabs,
   selectActiveInnerTabId
 } from '../../store';
-import { getTabComponent } from '../tab-component-registry';
 import { ParentTabId } from '../constants';
+import { BaseTabLauncher } from '../base-tab-launcher';
 
 /**
  * Generic container component for inner tabs.
@@ -37,6 +37,7 @@ import { ParentTabId } from '../constants';
 })
 export class InnerTabContainerComponent {
   private readonly store = inject(Store);
+  private readonly environmentInjector = inject(EnvironmentInjector);
 
   /**
    * The ID of the parent tab this container belongs to.
@@ -46,7 +47,7 @@ export class InnerTabContainerComponent {
   /**
    * The component class to use for the launcher tab.
    */
-  @Input({ required: true }) launcherComponent!: Type<unknown>;
+  @Input({ required: true }) launcherComponent!: Type<BaseTabLauncher>;
 
   /**
    * The component type enum value for the launcher.
@@ -62,6 +63,11 @@ export class InnerTabContainerComponent {
    * Icon for the launcher tab.
    */
   @Input() launcherIcon: string = 'pi pi-home';
+
+  /**
+   * Reference to the launcher instance to access its component registry.
+   */
+  private launcherInstance?: BaseTabLauncher;
 
   /**
    * Signal containing inner tabs for this parent.
@@ -110,6 +116,16 @@ export class InnerTabContainerComponent {
       if (!this.contextInitialized && this.parentTabId) {
         this.initializeContext();
         this.contextInitialized = true;
+      }
+    });
+
+    // Create launcher instance to access its component registry
+    effect(() => {
+      if (this.launcherComponent && !this.launcherInstance) {
+        const componentRef = createComponent(this.launcherComponent, {
+          environmentInjector: this.environmentInjector
+        });
+        this.launcherInstance = componentRef.instance as BaseTabLauncher;
       }
     });
   }
@@ -165,6 +181,7 @@ export class InnerTabContainerComponent {
     if (tab.componentType === this.launcherComponentType) {
       return this.launcherComponent;
     }
-    return getTabComponent(tab.componentType);
+    // Get component from launcher's registry
+    return this.launcherInstance?.getComponentFromRegistry(tab.componentType);
   }
 }

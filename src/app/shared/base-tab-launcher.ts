@@ -1,4 +1,4 @@
-import { computed, Directive, inject, Input, Signal } from '@angular/core';
+import { computed, Directive, inject, Input, Signal, Type } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { 
@@ -17,6 +17,7 @@ import { ParentTabId } from './constants';
  * 
  * Features:
  * - Signal-based tab state for reactive access
+ * - Component registry management for dynamic tab loading
  * - canOpenTab() method that can be overridden for custom logic
  * - Automatic focus on existing tab when singleton is opened
  * 
@@ -24,6 +25,11 @@ import { ParentTabId } from './constants';
  * ```typescript
  * export class TaskLauncherComponent extends BaseTabLauncher {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
+ * 
+ *   protected initializeComponentRegistry(): void {
+ *     this.registerComponent(InnerTabComponentType.TaskDetail, TaskDetailComponent);
+ *     this.registerComponent(InnerTabComponentType.TaskForm, TaskFormComponent);
+ *   }
  * 
  *   openNewTaskForm(): void {
  *     this.openInnerTab({
@@ -47,6 +53,19 @@ export abstract class BaseTabLauncher {
   protected abstract parentTabId: ParentTabId;
 
   /**
+   * Component registry mapping InnerTabComponentType to component classes.
+   * Populated by the initializeComponentRegistry() method.
+   */
+  protected componentRegistry: Map<InnerTabComponentType, Type<unknown>> = new Map();
+
+  /**
+   * Abstract method that must be implemented by child classes to register
+   * their specific inner tab components.
+   * This method is called during construction.
+   */
+  protected abstract initializeComponentRegistry(): void;
+
+  /**
    * Data passed from the inner tab system via ngComponentOutlet.
    * Available for launchers that need initialization data.
    */
@@ -61,6 +80,13 @@ export abstract class BaseTabLauncher {
    * NgRx Store instance, injected automatically.
    */
   protected store = inject(Store);
+
+  /**
+   * Constructor that initializes the component registry.
+   */
+  constructor() {
+    this.initializeComponentRegistry();
+  }
 
   /**
    * Signal containing current inner tabs from store.
@@ -218,5 +244,27 @@ export abstract class BaseTabLauncher {
    */
   protected generateTabId(prefix: string = 'tab'): string {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  }
+
+  /**
+   * Registers a component in the component registry.
+   * Called by child classes in their initializeComponentRegistry() implementation.
+   * 
+   * @param componentType - The InnerTabComponentType enum value
+   * @param component - The component class to register
+   */
+  protected registerComponent(componentType: InnerTabComponentType, component: Type<unknown>): void {
+    this.componentRegistry.set(componentType, component);
+  }
+
+  /**
+   * Gets a component from the registry by its type.
+   * Used by the InnerTabContainerComponent to resolve dynamic components.
+   * 
+   * @param componentType - The InnerTabComponentType enum value
+   * @returns The component class or undefined if not registered
+   */
+  getComponentFromRegistry(componentType: InnerTabComponentType): Type<unknown> | undefined {
+    return this.componentRegistry.get(componentType);
   }
 }

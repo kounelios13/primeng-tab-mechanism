@@ -4,6 +4,8 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
 import { InnerTabComponentType, InnerTabConfig } from '../../../store';
+import { TaskDetailComponent } from '../task-detail/task-detail.component';
+import { TaskFormComponent } from '../task-form/task-form.component';
 
 /**
  * Launcher component for the Tasks inner tab system.
@@ -23,6 +25,14 @@ import { InnerTabComponentType, InnerTabConfig } from '../../../store';
 })
 export class TaskLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.TASKS;
+
+  /**
+   * Initialize the component registry with task-specific components.
+   */
+  protected initializeComponentRegistry(): void {
+    this.registerComponent(InnerTabComponentType.TaskDetail, TaskDetailComponent);
+    this.registerComponent(InnerTabComponentType.TaskForm, TaskFormComponent);
+  }
 
   // Sample task data for demonstration
   recentTasks = [
