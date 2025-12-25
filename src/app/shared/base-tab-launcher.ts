@@ -11,17 +11,6 @@ import {
 import { ParentTabId } from './constants';
 
 /**
- * Interface for components that can provide a component registry.
- */
-export interface ComponentRegistryProvider {
-  /**
-   * Gets the component registry for this launcher.
-   * Must be a static method that returns the registry.
-   */
-  getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>>;
-}
-
-/**
  * Abstract base class for tab launcher components.
  * Extend this class in your launcher components to get access to
  * common inner tab management functionality.
@@ -37,12 +26,11 @@ export interface ComponentRegistryProvider {
  * export class TaskLauncherComponent extends BaseTabLauncher {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
  * 
- *   static override getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
- *     const registry = new Map();
- *     registry.set(InnerTabComponentType.TaskDetail, TaskDetailComponent);
- *     registry.set(InnerTabComponentType.TaskForm, TaskFormComponent);
- *     return registry;
- *   }
+ *   // Initialize component registry for this launcher
+ *   protected componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+ *     [InnerTabComponentType.TaskDetail, TaskDetailComponent],
+ *     [InnerTabComponentType.TaskForm, TaskFormComponent]
+ *   ]);
  * 
  *   openNewTaskForm(): void {
  *     this.openInnerTab({
@@ -58,7 +46,7 @@ export interface ComponentRegistryProvider {
  * ```
  */
 @Directive()
-export abstract class BaseTabLauncher implements ComponentRegistryProvider {
+export abstract class BaseTabLauncher {
   /**
    * The ID of the parent tab this launcher belongs to.
    * Must be set by the extending class using PARENT_TAB_IDS constants.
@@ -66,23 +54,19 @@ export abstract class BaseTabLauncher implements ComponentRegistryProvider {
   protected abstract parentTabId: ParentTabId;
 
   /**
-   * Static method that returns the component registry for this launcher.
-   * Child classes must override this method to provide their specific registry.
-   * This is a static method so it can be called without creating an instance.
+   * Component registry mapping InnerTabComponentType to component classes.
+   * Each child class should initialize this with their specific components.
+   * This can be used in templates to iterate over available components.
    * 
-   * @returns A Map containing the component registry
+   * @example
+   * ```typescript
+   * componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+   *   [InnerTabComponentType.TaskDetail, TaskDetailComponent],
+   *   [InnerTabComponentType.TaskForm, TaskFormComponent]
+   * ]);
+   * ```
    */
-  static getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
-    return new Map();
-  }
-
-  /**
-   * Instance method that delegates to the static method.
-   * Allows accessing the registry from an instance if needed.
-   */
-  getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
-    return (this.constructor as typeof BaseTabLauncher).getComponentRegistry();
-  }
+  componentRegistry: Map<InnerTabComponentType, Type<unknown>> = new Map();
 
   /**
    * Data passed from the inner tab system via ngComponentOutlet.

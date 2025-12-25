@@ -27,14 +27,13 @@ export class TaskLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.TASKS;
 
   /**
-   * Static method that returns the component registry for task-related components.
+   * Component registry for task-related inner tabs.
+   * Maps component types to their component classes for dynamic loading.
    */
-  static override getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
-    const registry = new Map<InnerTabComponentType, Type<unknown>>();
-    registry.set(InnerTabComponentType.TaskDetail, TaskDetailComponent);
-    registry.set(InnerTabComponentType.TaskForm, TaskFormComponent);
-    return registry;
-  }
+  override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.TaskDetail, TaskDetailComponent],
+    [InnerTabComponentType.TaskForm, TaskFormComponent]
+  ]);
 
   // Sample task data for demonstration
   recentTasks = [

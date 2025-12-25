@@ -22,14 +22,13 @@ export class OverviewLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.OVERVIEW;
 
   /**
-   * Static method that returns the component registry for overview-related components.
+   * Component registry for overview-related inner tabs.
+   * Maps component types to their component classes for dynamic loading.
    */
-  static override getComponentRegistry(): Map<InnerTabComponentType, Type<unknown>> {
-    const registry = new Map<InnerTabComponentType, Type<unknown>>();
-    registry.set(InnerTabComponentType.OverviewChart, OverviewChartComponent);
-    registry.set(InnerTabComponentType.OverviewReport, OverviewReportComponent);
-    return registry;
-  }
+  override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.OverviewChart, OverviewChartComponent],
+    [InnerTabComponentType.OverviewReport, OverviewReportComponent]
+  ]);
 
   // Sample stats for demonstration
   stats = {
