@@ -1,4 +1,4 @@
-import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, ViewChild, ViewContainerRef, ComponentRef, OnInit, EnvironmentInjector, createComponent, Injector, runInInjectionContext } from '@angular/core';
+import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
@@ -38,7 +38,6 @@ import { BaseTabLauncher } from '../base-tab-launcher';
 export class InnerTabContainerComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly environmentInjector = inject(EnvironmentInjector);
-  private readonly injector = inject(Injector);
 
   /**
    * The ID of the parent tab this container belongs to.
@@ -87,17 +86,15 @@ export class InnerTabContainerComponent implements OnInit {
   private contextInitialized = false;
 
   ngOnInit(): void {
-    // Initialize signals in injection context
-    runInInjectionContext(this.injector, () => {
-      this.innerTabs = toSignal(
-        this.store.select(selectInnerTabs(this.parentTabId)),
-        { initialValue: [] }
-      );
-      this.activeTabId = toSignal(
-        this.store.select(selectActiveInnerTabId(this.parentTabId)),
-        { initialValue: null }
-      );
-    });
+    // Initialize signals with injector option
+    this.innerTabs = toSignal(
+      this.store.select(selectInnerTabs(this.parentTabId)),
+      { initialValue: [], injector: this.environmentInjector }
+    );
+    this.activeTabId = toSignal(
+      this.store.select(selectActiveInnerTabId(this.parentTabId)),
+      { initialValue: null, injector: this.environmentInjector }
+    );
 
     // Create launcher instance to access its component registry
     if (this.launcherComponent && !this.launcherInstance) {
