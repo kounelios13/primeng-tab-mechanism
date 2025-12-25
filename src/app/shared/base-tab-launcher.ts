@@ -1,6 +1,6 @@
-import { Directive, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { computed, Directive, inject, Input, Signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
-import { Subject, takeUntil } from 'rxjs';
 import { 
   InnerTabActions, 
   InnerTabConfig, 
@@ -8,6 +8,7 @@ import {
   InnerTabItem,
   selectInnerTabs 
 } from '../store';
+import { ParentTabId } from './constants';
 
 /**
  * Abstract base class for tab launcher components.
@@ -15,14 +16,14 @@ import {
  * common inner tab management functionality.
  * 
  * Features:
- * - Store-synced tab state for singleton checking
+ * - Signal-based tab state for reactive access
  * - canOpenTab() method that can be overridden for custom logic
  * - Automatic focus on existing tab when singleton is opened
  * 
  * @example
  * ```typescript
  * export class TaskLauncherComponent extends BaseTabLauncher {
- *   protected parentTabId = 'tasks';
+ *   protected parentTabId = PARENT_TAB_IDS.TASKS;
  * 
  *   openNewTaskForm(): void {
  *     this.openInnerTab({
@@ -38,12 +39,12 @@ import {
  * ```
  */
 @Directive()
-export abstract class BaseTabLauncher implements OnInit, OnDestroy {
+export abstract class BaseTabLauncher {
   /**
    * The ID of the parent tab this launcher belongs to.
-   * Must be set by the extending class.
+   * Must be set by the extending class using PARENT_TAB_IDS constants.
    */
-  protected abstract parentTabId: string;
+  protected abstract parentTabId: ParentTabId;
 
   /**
    * Data passed from the inner tab system via ngComponentOutlet.
@@ -62,29 +63,20 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
   protected store = inject(Store);
 
   /**
-   * Current inner tabs synced from store.
-   * Used for singleton checks without async operations.
+   * Signal containing current inner tabs from store.
+   * Automatically updates when store changes.
+   * Note: Initialized lazily in getter due to abstract parentTabId.
    */
-  protected currentTabs: InnerTabItem[] = [];
+  private _currentTabs?: Signal<InnerTabItem[]>;
 
-  /**
-   * Subject for cleanup on destroy.
-   */
-  private destroy$ = new Subject<void>();
-
-  ngOnInit(): void {
-    // Sync tabs from store to local property for synchronous access
-    this.store.select(selectInnerTabs(this.parentTabId))
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(tabs => {
-        console.log('[BaseTabLauncher] Tabs synced from store:', tabs.map(t => ({ id: t.id, type: t.componentType })));
-        this.currentTabs = tabs;
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  protected get currentTabs(): Signal<InnerTabItem[]> {
+    if (!this._currentTabs) {
+      this._currentTabs = toSignal(
+        this.store.select(selectInnerTabs(this.parentTabId)), 
+        { initialValue: [] }
+      );
+    }
+    return this._currentTabs;
   }
 
   /**
@@ -96,13 +88,11 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
    * @returns true if tab was opened, false if blocked (singleton exists or canOpenTab returned false)
    */
   protected openInnerTab(config: InnerTabConfig): boolean {
-    console.log('[BaseTabLauncher] openInnerTab called:', config.id, 'singleton:', config.singleton);
-    console.log('[BaseTabLauncher] Current tabs:', this.currentTabs.map(t => t.id));
+    const tabs = this.currentTabs();
     
     // Check if singleton and already exists
     if (config.singleton) {
-      const existingTab = this.findTabByType(config.componentType);
-      console.log('[BaseTabLauncher] Singleton check - existing tab:', existingTab?.id);
+      const existingTab = tabs.find(tab => tab.componentType === config.componentType);
       if (existingTab) {    
         this.focusExistingTab(existingTab.id);
         return false;
@@ -141,13 +131,12 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
 
   /**
    * Checks if a tab of the given component type is currently open.
-   * Uses the synced store state for synchronous access.
    * 
    * @param componentType - The component type to check
    * @returns true if a tab of this type exists
    */
   protected isTabTypeOpen(componentType: InnerTabComponentType): boolean {
-    return this.currentTabs.some(tab => tab.componentType === componentType);
+    return this.currentTabs().some(tab => tab.componentType === componentType);
   }
 
   /**
@@ -157,7 +146,7 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
    * @returns The tab item if found, undefined otherwise
    */
   protected findTabByType(componentType: InnerTabComponentType): InnerTabItem | undefined {
-    return this.currentTabs.find(tab => tab.componentType === componentType);
+    return this.currentTabs().find(tab => tab.componentType === componentType);
   }
 
   /**
@@ -167,7 +156,7 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
    * @returns The tab item if found, undefined otherwise
    */
   protected findTabById(tabId: string): InnerTabItem | undefined {
-    return this.currentTabs.find(tab => tab.id === tabId);
+    return this.currentTabs().find(tab => tab.id === tabId);
   }
 
   /**
@@ -177,7 +166,6 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
    * @param tabId - The ID of the tab to focus
    */
   protected focusExistingTab(tabId: string): void {
-    console.log('[BaseTabLauncher] Focusing existing tab:', tabId, 'in parent:', this.parentTabId);
     this.store.dispatch(InnerTabActions.setActiveInnerTab({
       parentTabId: this.parentTabId,
       tabId
@@ -229,6 +217,6 @@ export abstract class BaseTabLauncher implements OnInit, OnDestroy {
    * @returns A unique string ID
    */
   protected generateTabId(prefix: string = 'tab'): string {
-    return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 }

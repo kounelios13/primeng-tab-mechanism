@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { BaseTabLauncher } from '../../../shared';
+import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
 import { InnerTabComponentType, InnerTabConfig } from '../../../store';
 
 /**
@@ -18,10 +18,11 @@ import { InnerTabComponentType, InnerTabConfig } from '../../../store';
   selector: 'app-task-launcher',
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './task-launcher.component.html',
-  styleUrl: './task-launcher.component.scss'
+  styleUrl: './task-launcher.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaskLauncherComponent extends BaseTabLauncher {
-  protected parentTabId = 'tasks';
+  protected parentTabId = PARENT_TAB_IDS.TASKS;
 
   // Sample task data for demonstration
   recentTasks = [
@@ -38,11 +39,10 @@ export class TaskLauncherComponent extends BaseTabLauncher {
   protected override canOpenTab(componentType: InnerTabComponentType, config: InnerTabConfig): boolean {
     // Example: Limit number of TaskDetail tabs to 5
     if (componentType === InnerTabComponentType.TaskDetail) {
-      const detailTabCount = this.currentTabs.filter(
+      const detailTabCount = this.currentTabs().filter(
         tab => tab.componentType === InnerTabComponentType.TaskDetail
       ).length;
       if (detailTabCount >= 5) {
-        console.warn('Maximum of 5 task detail tabs reached');
         return false;
       }
     }

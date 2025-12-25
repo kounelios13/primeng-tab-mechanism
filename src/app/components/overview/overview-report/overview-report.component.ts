@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,8 @@ import { TableModule } from 'primeng/table';
   selector: 'app-overview-report',
   imports: [CommonModule, CardModule, ButtonModule, TableModule],
   templateUrl: './overview-report.component.html',
-  styleUrl: './overview-report.component.scss'
+  styleUrl: './overview-report.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OverviewReportComponent implements OnInit {
   /**

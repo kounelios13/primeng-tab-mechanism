@@ -1,60 +1,54 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TabViewModule } from 'primeng/tabview';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TabsModule } from 'primeng/tabs';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { selectAllTabs, selectActiveTab, TabActions, TabItem } from '../store';
+import { selectAllTabs, selectActiveTabId, TabActions, TabItem } from '../store';
 import { TasksComponent } from '../components/tasks/tasks.component';
 import { OverviewComponent } from '../components/overview/overview.component';
+import { PARENT_TAB_IDS } from '../shared';
 
+/**
+ * Main tab panel component that manages the top-level tabs.
+ * Uses Angular Signals for reactive state management.
+ */
 @Component({
   selector: 'app-tab-panel',
-  imports: [CommonModule, TabViewModule, TasksComponent, OverviewComponent],
+  imports: [CommonModule, TabsModule, TasksComponent, OverviewComponent],
   templateUrl: './tab-panel.component.html',
-  styleUrl: './tab-panel.component.scss'
+  styleUrl: './tab-panel.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TabPanelComponent implements OnInit {
-  tabs$: Observable<TabItem[]>;
-  activeTab$: Observable<TabItem | undefined>;
+export class TabPanelComponent {
+  private readonly store = inject(Store);
 
-  constructor(private store: Store) {
-    this.tabs$ = this.store.select(selectAllTabs);
-    this.activeTab$ = this.store.select(selectActiveTab);
-  }
+  /**
+   * Signal containing all tabs from the store.
+   */
+  readonly tabs: Signal<TabItem[]> = toSignal(
+    this.store.select(selectAllTabs),
+    { initialValue: [] }
+  );
 
-  ngOnInit(): void {
-    // Clear existing tabs and add Tasks and Overview tabs
-    const tasksTab: TabItem = {
-      id: 'tasks',
-      title: 'Tasks',
-      content: 'Manage your tasks here',
-      icon: 'pi pi-check-square'
-    };
-    
-    const overviewTab: TabItem = {
-      id: 'overview',
-      title: 'Overview', 
-      content: 'View project overview and summary',
-      icon: 'pi pi-chart-bar'
-    };
+  /**
+   * Signal containing the active tab ID from the store.
+   */
+  readonly activeTabId: Signal<string | null> = toSignal(
+    this.store.select(selectActiveTabId),
+    { initialValue: null }
+  );
 
-    this.store.dispatch(TabActions.addTab({ tab: tasksTab }));
-    this.store.dispatch(TabActions.addTab({ tab: overviewTab }));
-    
-    // Set Tasks as the active tab
-    this.store.dispatch(TabActions.setActiveTab({ id: 'tasks' }));
-  }
+  /**
+   * Expose PARENT_TAB_IDS for template use.
+   */
+  readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
 
-  onTabChange(event: any): void {
-    const tabs = this.getTabs();
-    if (tabs && tabs[event.index]) {
-      this.store.dispatch(TabActions.setActiveTab({ id: tabs[event.index].id }));
+  /**
+   * Handles tab value change events from PrimeNG Tabs.
+   */
+  onTabValueChange(tabId: string): void {
+    if (tabId && tabId !== this.activeTabId()) {
+      this.store.dispatch(TabActions.setActiveTab({ id: tabId }));
     }
-  }
-
-  private getTabs(): TabItem[] {
-    let tabs: TabItem[] = [];
-    this.tabs$.subscribe(t => tabs = t).unsubscribe();
-    return tabs;
   }
 }

@@ -36,17 +36,6 @@ export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<
 };
 
 /**
- * Registers a component in the tab component registry.
- * Call this in your feature module or component file.
- * 
- * @param type - The InnerTabComponentType enum value
- * @param component - The Angular component class to register
- */
-export function registerTabComponent(type: InnerTabComponentType, component: Type<unknown>): void {
-  TAB_COMPONENT_REGISTRY[type] = component;
-}
-
-/**
  * Gets a component from the registry by its type.
  * 
  * @param type - The InnerTabComponentType enum value

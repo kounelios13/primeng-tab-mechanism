@@ -6,22 +6,26 @@ export interface TabState {
   activeTabId: string | null;
 }
 
+/**
+ * Initial state with Tasks and Overview tabs.
+ * These IDs must match PARENT_TAB_IDS constants.
+ */
 export const initialState: TabState = {
   tabs: [
     {
-      id: 'tab1',
-      title: 'Overview',
-      content: 'Welcome to the PrimeNG Tab Mechanism demo!',
-      icon: 'pi pi-home'
+      id: 'tasks',
+      title: 'Tasks',
+      content: 'Manage your tasks here',
+      icon: 'pi pi-check-square'
     },
     {
-      id: 'tab2',
-      title: 'Details',
-      content: 'This tab contains detailed information.',
-      icon: 'pi pi-info-circle'
+      id: 'overview',
+      title: 'Overview',
+      content: 'View project overview and summary',
+      icon: 'pi pi-chart-bar'
     }
   ],
-  activeTabId: 'tab1'
+  activeTabId: 'tasks'
 };
 
 const tabReducer = createReducer(
