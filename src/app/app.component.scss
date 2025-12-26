@@ -1,6 +1,8 @@
 .app-container {
   min-height: 100vh;
   background: var(--surface-ground);
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header {
@@ -25,4 +27,7 @@
 
 .app-main {
   padding: 0;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
 }
