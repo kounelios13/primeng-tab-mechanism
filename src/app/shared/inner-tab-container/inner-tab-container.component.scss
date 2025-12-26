@@ -1,57 +1,8 @@
 .inner-tab-container {
   height: 100%;
-  display: flex;
   
-  // CSS Variables for inner vertical tabs
-  --inner-menu-width: 200px;
-  --inner-active-border-width: 3px;
-  
-  .inner-tabs {
-    display: flex;
+  .inner-tabview {
     height: 100%;
-    width: 100%;
-    
-    // Menu-style vertical inner tabs
-    ::ng-deep {
-      .p-tabs-list-container {
-        width: var(--inner-menu-width);
-        min-width: var(--inner-menu-width);
-        background: var(--p-surface-50);
-        border-right: 1px solid var(--p-surface-border);
-      }
-      
-      .p-tablist {
-        padding: 0.75rem 0;
-        gap: 0.25rem;
-      }
-      
-      .p-tab {
-        border-radius: 0;
-        border: none;
-        justify-content: flex-start;
-        padding: 0.625rem 1rem;
-        margin: 0 0.5rem;
-        transition: all 0.2s;
-        
-        &:hover {
-          background: var(--p-primary-50);
-        }
-        
-        &[data-p-active="true"] {
-          background: var(--p-primary-100);
-          color: var(--p-primary-700);
-          font-weight: 500;
-          border-left: var(--inner-active-border-width) solid var(--p-primary-500);
-          padding-left: max(0px, calc(1rem - var(--inner-active-border-width)));
-        }
-      }
-      
-      .p-tabpanels {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-      }
-    }
   }
 }
 
@@ -59,6 +10,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.25rem;
   
   i:first-child {
     font-size: 0.9rem;
@@ -66,7 +18,7 @@
   
   .tab-title {
     font-size: 0.9rem;
-    max-width: 120px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -79,7 +31,7 @@
     width: 1.25rem;
     height: 1.25rem;
     padding: 0;
-    margin-left: auto;
+    margin-left: 0.25rem;
     border: none;
     border-radius: 50%;
     background: transparent;
@@ -102,7 +54,7 @@
 }
 
 .inner-tab-content {
-  padding: 1.5rem;
+  padding: 1rem;
   min-height: 200px;
 }
 
