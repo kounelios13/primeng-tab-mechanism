@@ -2,6 +2,10 @@
   display: flex;
   height: 100%;
   
+  // CSS Variables for vertical menu styling
+  --vertical-menu-width: 250px;
+  --active-border-width: 4px;
+  
   .custom-tabview {
     display: flex;
     height: 100%;
@@ -10,8 +14,8 @@
     // Menu-style vertical tabs
     ::ng-deep {
       .p-tabs-list-container {
-        width: 250px;
-        min-width: 250px;
+        width: var(--vertical-menu-width);
+        min-width: var(--vertical-menu-width);
         background: var(--p-surface-0);
         border-right: 1px solid var(--p-surface-border);
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
@@ -38,8 +42,8 @@
           background: var(--p-primary-100);
           color: var(--p-primary-700);
           font-weight: 600;
-          border-left: 4px solid var(--p-primary-500);
-          padding-left: calc(1.5rem - 4px);
+          border-left: var(--active-border-width) solid var(--p-primary-500);
+          padding-left: calc(1.5rem - var(--active-border-width));
         }
         
         i {
@@ -49,7 +53,8 @@
       
       .p-tabpanels {
         flex: 1;
-        overflow: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
     }
   }
