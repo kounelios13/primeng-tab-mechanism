@@ -6,74 +6,75 @@
   --vertical-menu-width: 250px;
   --active-border-width: 4px;
   
-  // Menu-style vertical tabs - target directly without relying on styleClass
+  // Menu-style vertical tabs - ONLY for direct child tabs, not nested
   ::ng-deep {
-    // Force the tabs component to display as flex row
-    .p-tabs {
+    // Use child combinator (>) to ONLY target direct child .p-tabs, not nested ones
+    > .p-tabs {
       display: flex !important;
       flex-direction: row !important;
       height: 100%;
       width: 100%;
-    }
-    
-    // Tab list container - the sidebar
-    .p-tablist {
-      width: var(--vertical-menu-width);
-      min-width: var(--vertical-menu-width);
-      background: var(--p-surface-0);
-      border-right: 1px solid var(--p-surface-border);
-      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-      flex-shrink: 0;
-    }
-    
-    .p-tablist-content {
-      height: 100%;
-    }
-    
-    // This is the actual container of tabs - make it vertical with highest specificity!
-    .p-tablist .p-tablist-content .p-tablist-tab-list {
-      display: flex !important;
-      flex-direction: column !important;
-      padding: 1rem 0;
-      gap: 0.25rem;
-    }
-    
-    // Hide the active bar indicator for vertical tabs
-    .p-tablist-active-bar {
-      display: none !important;
-    }
-    
-    .p-tab {
-      border-radius: 0;
-      border: none;
-      border-bottom: none !important;
-      justify-content: flex-start;
-      padding: 0.75rem 1.5rem;
-      margin: 0 0.5rem;
-      transition: all 0.2s;
-      width: auto !important;
       
-      &:hover {
-        background: var(--p-primary-50);
+      // Tab list container - the sidebar (only for direct child)
+      > .p-tablist {
+        width: var(--vertical-menu-width);
+        min-width: var(--vertical-menu-width);
+        background: var(--p-surface-0);
+        border-right: 1px solid var(--p-surface-border);
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        flex-shrink: 0;
+        
+        .p-tablist-content {
+          height: 100%;
+          
+          // This is the actual container of tabs - make it vertical!
+          .p-tablist-tab-list {
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 1rem 0;
+            gap: 0.25rem;
+          }
+        }
+        
+        // Hide the active bar indicator for vertical tabs
+        .p-tablist-active-bar {
+          display: none !important;
+        }
+        
+        .p-tab {
+          border-radius: 0;
+          border: none;
+          border-bottom: none !important;
+          justify-content: flex-start;
+          padding: 0.75rem 1.5rem;
+          margin: 0 0.5rem;
+          transition: all 0.2s;
+          width: auto !important;
+          
+          &:hover {
+            background: var(--p-primary-50);
+          }
+          
+          &[data-p-active="true"] {
+            background: var(--p-primary-100);
+            color: var(--p-primary-700);
+            font-weight: 600;
+            border-left: var(--active-border-width) solid var(--p-primary-500);
+            padding-left: max(0px, calc(1.5rem - var(--active-border-width)));
+          }
+          
+          i {
+            margin-right: 0.75rem;
+          }
+        }
       }
       
-      &[data-p-active="true"] {
-        background: var(--p-primary-100);
-        color: var(--p-primary-700);
-        font-weight: 600;
-        border-left: var(--active-border-width) solid var(--p-primary-500);
-        padding-left: max(0px, calc(1.5rem - var(--active-border-width)));
+      // Tab panels for direct child only
+      > .p-tabpanels {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
-      
-      i {
-        margin-right: 0.75rem;
-      }
-    }
-    
-    .p-tabpanels {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
     }
   }
 }
