@@ -8,20 +8,32 @@
   
   .custom-tabview {
     display: flex;
+    flex-direction: row !important;
     height: 100%;
     width: 100%;
     
     // Menu-style vertical tabs
     ::ng-deep {
+      // Force the tabs component to display as flex row
+      .p-tabs {
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+        width: 100%;
+      }
+      
       .p-tabs-list-container {
         width: var(--vertical-menu-width);
         min-width: var(--vertical-menu-width);
         background: var(--p-surface-0);
         border-right: 1px solid var(--p-surface-border);
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        flex-shrink: 0;
       }
       
       .p-tablist {
+        display: flex;
+        flex-direction: column !important;
         padding: 1rem 0;
         gap: 0.25rem;
       }
@@ -29,10 +41,12 @@
       .p-tab {
         border-radius: 0;
         border: none;
+        border-bottom: none !important;
         justify-content: flex-start;
         padding: 0.75rem 1.5rem;
         margin: 0 0.5rem;
         transition: all 0.2s;
+        width: auto !important;
         
         &:hover {
           background: var(--p-primary-50);
@@ -43,6 +57,7 @@
           color: var(--p-primary-700);
           font-weight: 600;
           border-left: var(--active-border-width) solid var(--p-primary-500);
+          border-bottom: none !important;
           padding-left: max(0px, calc(1.5rem - var(--active-border-width)));
         }
         
