@@ -42,7 +42,7 @@
           color: var(--p-primary-700);
           font-weight: 500;
           border-left: var(--inner-active-border-width) solid var(--p-primary-500);
-          padding-left: calc(1rem - var(--inner-active-border-width));
+          padding-left: max(0px, calc(1rem - var(--inner-active-border-width)));
         }
       }
       
