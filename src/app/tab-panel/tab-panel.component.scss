@@ -22,7 +22,8 @@
         width: 100%;
       }
       
-      .p-tabs-list-container {
+      // Tab list container - the sidebar
+      .p-tablist {
         width: var(--vertical-menu-width);
         min-width: var(--vertical-menu-width);
         background: var(--p-surface-0);
@@ -31,11 +32,21 @@
         flex-shrink: 0;
       }
       
-      .p-tablist {
-        display: flex;
+      .p-tablist-content {
+        height: 100%;
+      }
+      
+      // This is the actual container of tabs - make it vertical!
+      .p-tablist-tab-list {
+        display: flex !important;
         flex-direction: column !important;
         padding: 1rem 0;
         gap: 0.25rem;
+      }
+      
+      // Hide the active bar indicator for vertical tabs
+      .p-tablist-active-bar {
+        display: none !important;
       }
       
       .p-tab {
