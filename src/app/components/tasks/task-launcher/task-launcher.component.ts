@@ -1,9 +1,11 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
 import { InnerTabComponentType, InnerTabConfig } from '../../../store';
+import { TaskDetailComponent } from '../task-detail/task-detail.component';
+import { TaskFormComponent } from '../task-form/task-form.component';
 
 /**
  * Launcher component for the Tasks inner tab system.
@@ -23,6 +25,15 @@ import { InnerTabComponentType, InnerTabConfig } from '../../../store';
 })
 export class TaskLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.TASKS;
+
+  /**
+   * Component registry for task-related inner tabs.
+   * Maps component types to their component classes for dynamic loading.
+   */
+  override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.TaskDetail, TaskDetailComponent],
+    [InnerTabComponentType.TaskForm, TaskFormComponent]
+  ]);
 
   // Sample task data for demonstration
   recentTasks = [

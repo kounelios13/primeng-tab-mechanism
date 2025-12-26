@@ -1,9 +1,11 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
 import { InnerTabComponentType } from '../../../store';
+import { OverviewChartComponent } from '../overview-chart/overview-chart.component';
+import { OverviewReportComponent } from '../overview-report/overview-report.component';
 
 /**
  * Launcher component for the Overview inner tab system.
@@ -18,6 +20,15 @@ import { InnerTabComponentType } from '../../../store';
 })
 export class OverviewLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.OVERVIEW;
+
+  /**
+   * Component registry for overview-related inner tabs.
+   * Maps component types to their component classes for dynamic loading.
+   */
+  override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.OverviewChart, OverviewChartComponent],
+    [InnerTabComponentType.OverviewReport, OverviewReportComponent]
+  ]);
 
   // Sample stats for demonstration
   stats = {

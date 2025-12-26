@@ -1,4 +1,4 @@
-import { computed, Directive, inject, Input, Signal } from '@angular/core';
+import { computed, Directive, inject, Input, Signal, Type } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { 
@@ -17,6 +17,7 @@ import { ParentTabId } from './constants';
  * 
  * Features:
  * - Signal-based tab state for reactive access
+ * - Component registry management for dynamic tab loading
  * - canOpenTab() method that can be overridden for custom logic
  * - Automatic focus on existing tab when singleton is opened
  * 
@@ -24,6 +25,12 @@ import { ParentTabId } from './constants';
  * ```typescript
  * export class TaskLauncherComponent extends BaseTabLauncher {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
+ * 
+ *   // Initialize component registry for this launcher
+ *   protected componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+ *     [InnerTabComponentType.TaskDetail, TaskDetailComponent],
+ *     [InnerTabComponentType.TaskForm, TaskFormComponent]
+ *   ]);
  * 
  *   openNewTaskForm(): void {
  *     this.openInnerTab({
@@ -45,6 +52,21 @@ export abstract class BaseTabLauncher {
    * Must be set by the extending class using PARENT_TAB_IDS constants.
    */
   protected abstract parentTabId: ParentTabId;
+
+  /**
+   * Component registry mapping InnerTabComponentType to component classes.
+   * Each child class should initialize this with their specific components.
+   * This can be used in templates to iterate over available components.
+   * 
+   * @example
+   * ```typescript
+   * componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+   *   [InnerTabComponentType.TaskDetail, TaskDetailComponent],
+   *   [InnerTabComponentType.TaskForm, TaskFormComponent]
+   * ]);
+   * ```
+   */
+  componentRegistry: Map<InnerTabComponentType, Type<unknown>> = new Map();
 
   /**
    * Data passed from the inner tab system via ngComponentOutlet.
