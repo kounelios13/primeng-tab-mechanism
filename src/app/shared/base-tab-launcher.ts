@@ -111,6 +111,9 @@ export abstract class BaseTabLauncher {
    * If the tab is marked as singleton and already exists, focuses the existing tab.
    * Uses canOpenTab() for additional custom validation.
    * 
+   * Instead of directly adding the tab to the store, this method dispatches a request
+   * that will be handled by the parent component via NgRx Effects.
+   * 
    * @param config - Configuration for the new inner tab
    * @returns true if tab was opened, false if blocked (singleton exists or canOpenTab returned false)
    */
@@ -131,7 +134,8 @@ export abstract class BaseTabLauncher {
       return false;
     }
 
-    this.store.dispatch(InnerTabActions.addInnerTab({
+    // Dispatch request action instead of directly adding the tab
+    this.store.dispatch(InnerTabActions.requestAddInnerTab({
       parentTabId: this.parentTabId,
       tab: {
         ...config,

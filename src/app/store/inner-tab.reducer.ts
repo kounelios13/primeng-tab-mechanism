@@ -2,6 +2,15 @@ import { createFeature, createReducer, on } from '@ngrx/store';
 import { InnerTabActions, InnerTabItem } from './inner-tab.actions';
 
 /**
+ * Represents a pending request to add a tab.
+ */
+export interface TabRequest {
+  parentTabId: string;
+  tab: InnerTabItem;
+  timestamp: number;
+}
+
+/**
  * State for inner tabs within a single parent tab context.
  */
 export interface InnerTabContextState {
@@ -15,13 +24,15 @@ export interface InnerTabContextState {
  */
 export interface InnerTabState {
   contexts: Record<string, InnerTabContextState>;
+  pendingRequests: TabRequest[];
 }
 
 /**
  * Initial state with no contexts.
  */
 export const initialInnerTabState: InnerTabState = {
-  contexts: {}
+  contexts: {},
+  pendingRequests: []
 };
 
 /**
@@ -49,15 +60,30 @@ const innerTabReducer = createReducer(
     }
   })),
 
+  // Handle request to add inner tab - store it in pending requests
+  on(InnerTabActions.requestAddInnerTab, (state, { parentTabId, tab }) => ({
+    ...state,
+    pendingRequests: [
+      ...state.pendingRequests,
+      { parentTabId, tab, timestamp: Date.now() }
+    ]
+  })),
+
   // Add a new inner tab to a context
   on(InnerTabActions.addInnerTab, (state, { parentTabId, tab }) => {
     const context = getContext(state, parentTabId);
+    
+    // Remove the corresponding request from pending requests
+    const pendingRequests = state.pendingRequests.filter(
+      req => !(req.parentTabId === parentTabId && req.tab.id === tab.id)
+    );
     
     // Check if tab already exists, if so just activate it
     const existingTab = context.innerTabs.find(t => t.id === tab.id);
     if (existingTab) {
       return {
         ...state,
+        pendingRequests,
         contexts: {
           ...state.contexts,
           [parentTabId]: {
@@ -70,6 +96,7 @@ const innerTabReducer = createReducer(
 
     return {
       ...state,
+      pendingRequests,
       contexts: {
         ...state.contexts,
         [parentTabId]: {
