@@ -141,11 +141,17 @@ export class InnerTabContainerComponent implements OnInit {
         const currentRequestIds = new Set(
           requests.map(r => this.getRequestId(r))
         );
+        
+        // Collect IDs to delete (safer than modifying while iterating)
+        const idsToDelete: string[] = [];
         this.processedRequestIds.forEach(id => {
           if (!currentRequestIds.has(id)) {
-            this.processedRequestIds.delete(id);
+            idsToDelete.push(id);
           }
         });
+        
+        // Remove collected IDs
+        idsToDelete.forEach(id => this.processedRequestIds.delete(id));
         
         // Process each pending request that hasn't been processed yet
         requests.forEach(request => {
@@ -161,6 +167,9 @@ export class InnerTabContainerComponent implements OnInit {
 
   /**
    * Generates a unique identifier for a request to prevent duplicate processing.
+   * Uses parentTabId and tab.id to uniquely identify the request.
+   * The timestamp is included to handle edge cases where the same tab might be
+   * requested multiple times intentionally (e.g., close and reopen).
    */
   private getRequestId(request: TabRequest): string {
     return `${request.parentTabId}-${request.tab.id}-${request.timestamp}`;

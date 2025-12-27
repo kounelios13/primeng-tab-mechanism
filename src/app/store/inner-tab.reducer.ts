@@ -61,13 +61,26 @@ const innerTabReducer = createReducer(
   })),
 
   // Handle request to add inner tab - store it in pending requests
-  on(InnerTabActions.requestAddInnerTab, (state, { parentTabId, tab }) => ({
-    ...state,
-    pendingRequests: [
-      ...state.pendingRequests,
-      { parentTabId, tab, timestamp: Date.now() }
-    ]
-  })),
+  // Deduplicates based on parentTabId and tab.id to prevent duplicates
+  on(InnerTabActions.requestAddInnerTab, (state, { parentTabId, tab }) => {
+    // Check if this exact tab request already exists
+    const isDuplicate = state.pendingRequests.some(
+      req => req.parentTabId === parentTabId && req.tab.id === tab.id
+    );
+    
+    // Only add if not already pending
+    if (isDuplicate) {
+      return state;
+    }
+    
+    return {
+      ...state,
+      pendingRequests: [
+        ...state.pendingRequests,
+        { parentTabId, tab, timestamp: Date.now() }
+      ]
+    };
+  }),
 
   // Add a new inner tab to a context
   on(InnerTabActions.addInnerTab, (state, { parentTabId, tab }) => {
