@@ -1,4 +1,4 @@
-import { computed, Directive, inject, Input, Signal, Type } from '@angular/core';
+import { computed, Directive, inject, Injector, Input, Signal, Type } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { 
@@ -85,6 +85,11 @@ export abstract class BaseTabLauncher {
   protected store = inject(Store);
 
   /**
+   * Injector instance for creating signals outside injection context.
+   */
+  private injector = inject(Injector);
+
+  /**
    * Signal containing current inner tabs from store.
    * Automatically updates when store changes.
    * Note: Initialized lazily in getter due to abstract parentTabId.
@@ -95,7 +100,7 @@ export abstract class BaseTabLauncher {
     if (!this._currentTabs) {
       this._currentTabs = toSignal(
         this.store.select(selectInnerTabs(this.parentTabId)), 
-        { initialValue: [] }
+        { initialValue: [], injector: this.injector }
       );
     }
     return this._currentTabs;
