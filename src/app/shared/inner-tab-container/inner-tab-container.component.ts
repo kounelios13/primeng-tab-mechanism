@@ -95,9 +95,10 @@ export class InnerTabContainerComponent implements OnInit {
   private contextInitialized = false;
 
   /**
-   * Set to track processed request timestamps to avoid duplicate processing.
+   * Set to track processed request identifiers (parentTabId-tabId-timestamp) to avoid duplicate processing.
+   * Automatically cleaned up as requests are removed from the store.
    */
-  private processedRequestTimestamps = new Set<number>();
+  private processedRequestIds = new Set<string>();
 
   ngOnInit(): void {
     // Initialize signals with injector option
@@ -135,15 +136,34 @@ export class InnerTabContainerComponent implements OnInit {
       // Access the signal to establish dependency (only after ngOnInit)
       if (this.pendingRequests) {
         const requests = this.pendingRequests();
+        
+        // Clean up processed IDs that are no longer in pending requests
+        const currentRequestIds = new Set(
+          requests.map(r => this.getRequestId(r))
+        );
+        this.processedRequestIds.forEach(id => {
+          if (!currentRequestIds.has(id)) {
+            this.processedRequestIds.delete(id);
+          }
+        });
+        
         // Process each pending request that hasn't been processed yet
         requests.forEach(request => {
-          if (!this.processedRequestTimestamps.has(request.timestamp)) {
-            this.processedRequestTimestamps.add(request.timestamp);
+          const requestId = this.getRequestId(request);
+          if (!this.processedRequestIds.has(requestId)) {
+            this.processedRequestIds.add(requestId);
             this.handleTabRequest(request);
           }
         });
       }
     });
+  }
+
+  /**
+   * Generates a unique identifier for a request to prevent duplicate processing.
+   */
+  private getRequestId(request: TabRequest): string {
+    return `${request.parentTabId}-${request.tab.id}-${request.timestamp}`;
   }
 
   /**
