@@ -94,6 +94,11 @@ export class InnerTabContainerComponent implements OnInit {
    */
   private contextInitialized = false;
 
+  /**
+   * Set to track processed request timestamps to avoid duplicate processing.
+   */
+  private processedRequestTimestamps = new Set<number>();
+
   ngOnInit(): void {
     // Initialize signals with injector option
     this.innerTabs = toSignal(
@@ -130,9 +135,12 @@ export class InnerTabContainerComponent implements OnInit {
       // Access the signal to establish dependency (only after ngOnInit)
       if (this.pendingRequests) {
         const requests = this.pendingRequests();
-        // Process each pending request
+        // Process each pending request that hasn't been processed yet
         requests.forEach(request => {
-          this.handleTabRequest(request);
+          if (!this.processedRequestTimestamps.has(request.timestamp)) {
+            this.processedRequestTimestamps.add(request.timestamp);
+            this.handleTabRequest(request);
+          }
         });
       }
     });
@@ -140,6 +148,7 @@ export class InnerTabContainerComponent implements OnInit {
 
   /**
    * Handles a pending tab request by dispatching the add action.
+   * The request will be removed from the pending list by the reducer.
    */
   private handleTabRequest(request: TabRequest): void {
     this.store.dispatch(InnerTabActions.addInnerTab({
