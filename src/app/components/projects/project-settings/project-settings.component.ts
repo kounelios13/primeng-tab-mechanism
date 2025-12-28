@@ -62,12 +62,12 @@ export class ProjectSettingsComponent implements OnInit {
   }
 
   saveSettings(): void {
-    // In a real app, this would save to a backend
+    // TODO: Implement backend API call to save settings
     console.log('Saving settings:', this.settings);
   }
 
   resetSettings(): void {
-    // Reset to defaults
+    // TODO: Implement reset to default settings functionality
     console.log('Resetting settings to defaults');
   }
 }
