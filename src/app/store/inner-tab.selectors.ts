@@ -8,6 +8,19 @@ import { InnerTabComponentType, InnerTabItem } from './inner-tab.actions';
 export const selectInnerTabContexts = innerTabFeature.selectContexts;
 
 /**
+ * Selector for pending tab requests.
+ */
+export const selectPendingRequests = innerTabFeature.selectPendingRequests;
+
+/**
+ * Factory selector to get pending requests for a specific parent tab.
+ */
+export const selectPendingRequestsForParent = (parentTabId: string) => createSelector(
+  selectPendingRequests,
+  (requests) => requests.filter(req => req.parentTabId === parentTabId)
+);
+
+/**
  * Factory selector to get inner tab context for a specific parent tab.
  */
 export const selectInnerTabContext = (parentTabId: string) => createSelector(

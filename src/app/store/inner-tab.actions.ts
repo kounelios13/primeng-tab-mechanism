@@ -49,6 +49,9 @@ export const InnerTabActions = createActionGroup({
     // Initialize a context for a parent tab with its launcher tab
     'Init Context': props<{ parentTabId: string; launcherTab: InnerTabItem }>(),
     
+    // Request to add a new inner tab (forwarded to parent component)
+    'Request Add Inner Tab': props<{ parentTabId: string; tab: InnerTabItem }>(),
+    
     // Add a new inner tab to a parent context
     'Add Inner Tab': props<{ parentTabId: string; tab: InnerTabItem }>(),
     
