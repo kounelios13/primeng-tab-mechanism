@@ -15,6 +15,11 @@ export enum InnerTabComponentType {
   OverviewChart = 'overview-chart',
   OverviewReport = 'overview-report',
   
+  // Projects-related inner tabs
+  ProjectLauncher = 'project-launcher',
+  ProjectDetail = 'project-detail',
+  ProjectSettings = 'project-settings',
+  
   // Generic/shared inner tabs
   GenericLauncher = 'generic-launcher',
   Settings = 'settings'

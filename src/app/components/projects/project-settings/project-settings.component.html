@@ -1,0 +1,107 @@
+<div class="project-settings">
+  <div class="settings-header">
+    <h2><i class="pi pi-cog"></i> Project Settings</h2>
+    <p>Configure your project preferences and integrations</p>
+  </div>
+
+  <div class="settings-content">
+    <p-card header="Notifications">
+      <div class="settings-section">
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Email Notifications</label>
+            <p>Receive email updates about project activities</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.notifications.emailNotifications"></p-inputSwitch>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Push Notifications</label>
+            <p>Get push notifications for important updates</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.notifications.pushNotifications"></p-inputSwitch>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Weekly Reports</label>
+            <p>Receive weekly project summary reports</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.notifications.weeklyReports"></p-inputSwitch>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Milestone Alerts</label>
+            <p>Get notified when milestones are reached</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.notifications.milestoneAlerts"></p-inputSwitch>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card header="Preferences">
+      <div class="settings-section">
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Auto Save</label>
+            <p>Automatically save changes as you work</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.preferences.autoSave"></p-inputSwitch>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Show Completed Tasks</label>
+            <p>Display completed tasks in lists</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.preferences.showCompletedTasks"></p-inputSwitch>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card header="Integrations">
+      <div class="settings-section">
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Slack Integration</label>
+            <p>Connect with Slack for team notifications</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.integrations.slackEnabled"></p-inputSwitch>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>GitHub Integration</label>
+            <p>Link with GitHub repositories</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.integrations.githubEnabled"></p-inputSwitch>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label>Jira Integration</label>
+            <p>Sync with Jira for issue tracking</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="settings.integrations.jiraEnabled"></p-inputSwitch>
+        </div>
+      </div>
+    </p-card>
+
+    <div class="settings-actions">
+      <p-button 
+        label="Save Settings" 
+        icon="pi pi-check" 
+        (onClick)="saveSettings()"
+        styleClass="p-button-success">
+      </p-button>
+      <p-button 
+        label="Reset to Defaults" 
+        icon="pi pi-refresh" 
+        (onClick)="resetSettings()"
+        styleClass="p-button-outlined">
+      </p-button>
+    </div>
+  </div>
+</div>

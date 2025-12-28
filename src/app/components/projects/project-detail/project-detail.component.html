@@ -1,0 +1,91 @@
+<div class="project-detail">
+  <div class="detail-header">
+    <h2>
+      @if (mode === 'create') {
+        <i class="pi pi-plus"></i> New Project
+      } @else {
+        <i class="pi pi-folder"></i> {{ projectName }}
+      }
+    </h2>
+    @if (projectId) {
+      <p class="project-id">Project ID: {{ projectId }}</p>
+    }
+  </div>
+
+  @if (mode === 'create') {
+    <p-card header="Create New Project">
+      <p>Project creation form would go here...</p>
+      <div class="form-actions">
+        <p-button label="Create Project" icon="pi pi-check" styleClass="p-button-success"></p-button>
+        <p-button label="Cancel" icon="pi pi-times" styleClass="p-button-outlined"></p-button>
+      </div>
+    </p-card>
+  } @else {
+    <div class="detail-content">
+      <div class="detail-grid">
+        <p-card header="Overview" styleClass="overview-card">
+          <div class="info-group">
+            <label>Description</label>
+            <p>{{ projectDetails.description }}</p>
+          </div>
+          <div class="info-grid">
+            <div class="info-group">
+              <label>Status</label>
+              <span class="status-badge" [attr.data-status]="projectDetails.status">
+                {{ projectDetails.status }}
+              </span>
+            </div>
+            <div class="info-group">
+              <label>Budget</label>
+              <p>{{ projectDetails.budget }}</p>
+            </div>
+            <div class="info-group">
+              <label>Start Date</label>
+              <p>{{ projectDetails.startDate | date }}</p>
+            </div>
+            <div class="info-group">
+              <label>End Date</label>
+              <p>{{ projectDetails.endDate | date }}</p>
+            </div>
+          </div>
+        </p-card>
+
+        <p-card header="Team Members">
+          <div class="members-list">
+            @for (member of projectDetails.members; track member.name) {
+              <div class="member-item">
+                <i class="pi pi-user"></i>
+                <div class="member-info">
+                  <span class="member-name">{{ member.name }}</span>
+                  <span class="member-role">{{ member.role }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </p-card>
+      </div>
+
+      <p-card header="Project Milestones">
+        <div class="milestones-list">
+          @for (milestone of projectDetails.milestones; track milestone.name) {
+            <div class="milestone-item">
+              <div class="milestone-info">
+                <span class="milestone-name">{{ milestone.name }}</span>
+                <span class="milestone-date">{{ milestone.date }}</span>
+              </div>
+              <span class="milestone-status" [attr.data-status]="milestone.status">
+                {{ milestone.status }}
+              </span>
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <div class="actions">
+        <p-button label="Edit Project" icon="pi pi-pencil" styleClass="p-button-outlined"></p-button>
+        <p-button label="View Timeline" icon="pi pi-calendar" styleClass="p-button-outlined"></p-button>
+        <p-button label="Generate Report" icon="pi pi-file-pdf" styleClass="p-button-outlined"></p-button>
+      </div>
+    </div>
+  }
+</div>
