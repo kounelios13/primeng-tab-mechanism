@@ -26,6 +26,9 @@
               @case (PARENT_TAB_IDS.OVERVIEW) {
                 <app-overview></app-overview>
               }
+              @case (PARENT_TAB_IDS.PROJECTS) {
+                <app-projects></app-projects>
+              }
               @default {
                 <div class="default-content">
                   <p>{{ tab.content }}</p>

@@ -6,6 +6,7 @@ import { Store } from '@ngrx/store';
 import { selectAllTabs, selectActiveTabId, TabActions, TabItem } from '../store';
 import { TasksComponent } from '../components/tasks/tasks.component';
 import { OverviewComponent } from '../components/overview/overview.component';
+import { ProjectsComponent } from '../components/projects/projects.component';
 import { PARENT_TAB_IDS } from '../shared';
 
 /**
@@ -14,7 +15,7 @@ import { PARENT_TAB_IDS } from '../shared';
  */
 @Component({
   selector: 'app-tab-panel',
-  imports: [CommonModule, TabsModule, TasksComponent, OverviewComponent],
+  imports: [CommonModule, TabsModule, TasksComponent, OverviewComponent, ProjectsComponent],
   templateUrl: './tab-panel.component.html',
   styleUrl: './tab-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

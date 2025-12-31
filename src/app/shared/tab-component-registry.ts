@@ -11,6 +11,11 @@ import { OverviewLauncherComponent } from '../components/overview/overview-launc
 import { OverviewChartComponent } from '../components/overview/overview-chart/overview-chart.component';
 import { OverviewReportComponent } from '../components/overview/overview-report/overview-report.component';
 
+// Import projects components for registration
+import { ProjectLauncherComponent } from '../components/projects/project-launcher/project-launcher.component';
+import { ProjectDetailComponent } from '../components/projects/project-detail/project-detail.component';
+import { ProjectSettingsComponent } from '../components/projects/project-settings/project-settings.component';
+
 /**
  * Registry mapping InnerTabComponentType enum values to their corresponding Angular components.
  * 
@@ -33,6 +38,11 @@ export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<
   [InnerTabComponentType.OverviewLauncher]: OverviewLauncherComponent,
   [InnerTabComponentType.OverviewChart]: OverviewChartComponent,
   [InnerTabComponentType.OverviewReport]: OverviewReportComponent,
+
+  // Projects-related components
+  [InnerTabComponentType.ProjectLauncher]: ProjectLauncherComponent,
+  [InnerTabComponentType.ProjectDetail]: ProjectDetailComponent,
+  [InnerTabComponentType.ProjectSettings]: ProjectSettingsComponent,
 };
 
 /**

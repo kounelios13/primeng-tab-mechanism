@@ -7,7 +7,7 @@ export interface TabState {
 }
 
 /**
- * Initial state with Tasks and Overview tabs.
+ * Initial state with Tasks, Overview, and Projects tabs.
  * These IDs must match PARENT_TAB_IDS constants.
  */
 export const initialState: TabState = {
@@ -23,6 +23,12 @@ export const initialState: TabState = {
       title: 'Overview',
       content: 'View project overview and summary',
       icon: 'pi pi-chart-bar'
+    },
+    {
+      id: 'projects',
+      title: 'Projects',
+      content: 'Manage your projects',
+      icon: 'pi pi-folder'
     }
   ],
   activeTabId: 'tasks'
