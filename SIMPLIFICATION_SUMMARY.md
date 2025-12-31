@@ -86,8 +86,7 @@ Each wrapper needs only 1 file with inline template (15 lines total):
       [launcherTitle]="'Task Home'"
       [launcherIcon]="'pi pi-home'">
     </app-inner-tab-container>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class TasksComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
@@ -183,8 +182,7 @@ export class MyLauncherComponent extends BaseTabLauncher {
   selector: 'app-my-feature',
   imports: [InnerTabContainerComponent],
   templateUrl: './my-feature.component.html',
-  styleUrl: './my-feature.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './my-feature.component.scss'
 })
 export class MyFeatureComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
@@ -205,8 +203,7 @@ export class MyFeatureComponent {
       [launcherTitle]="'My Feature Home'"
       [launcherIcon]="'pi pi-home'">
     </app-inner-tab-container>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class MyFeatureComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;

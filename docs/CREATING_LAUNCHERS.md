@@ -52,9 +52,8 @@ Before creating a new launcher, ensure you understand:
 
 1. **Angular 19 Standalone Components**: All components use `imports` array, no NgModules
 2. **Angular Signals**: Using `toSignal()` for reactive state
-3. **OnPush Change Detection**: All components use `ChangeDetectionStrategy.OnPush`
-4. **NgRx Store**: Actions, reducers, and selectors pattern
-5. **PrimeNG New Tabs API**: `p-tabs`, `p-tablist`, `p-tab`, `p-tabpanels`, `p-tabpanel`
+3. **NgRx Store**: Actions, reducers, and selectors pattern
+4. **PrimeNG New Tabs API**: `p-tabs`, `p-tablist`, `p-tab`, `p-tabpanels`, `p-tabpanel`
 
 ---
 
@@ -113,7 +112,7 @@ Implement the launcher by extending `BaseTabLauncher`:
 ```typescript
 // src/app/components/projects/project-launcher/project-launcher.component.ts
 
-import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
+import { Component, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -126,8 +125,7 @@ import { ProjectSettingsComponent } from '../project-settings/project-settings.c
   selector: 'app-project-launcher',
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './project-launcher.component.html',
-  styleUrl: './project-launcher.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './project-launcher.component.scss'
 })
 export class ProjectLauncherComponent extends BaseTabLauncher {
   // REQUIRED: Set the parent tab ID
@@ -240,7 +238,7 @@ Create the main parent component that uses InnerTabContainerComponent:
 ```typescript
 // src/app/components/projects/projects.component.ts
 
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { ProjectLauncherComponent } from './project-launcher/project-launcher.component';
 
@@ -254,8 +252,7 @@ import { ProjectLauncherComponent } from './project-launcher/project-launcher.co
       [launcherTitle]="'Projects Home'"
       [launcherIcon]="'pi pi-folder'">
     </app-inner-tab-container>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class ProjectsComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
@@ -280,7 +277,7 @@ ng generate component components/projects/project-detail
 ```typescript
 // src/app/components/projects/project-detail/project-detail.component.ts
 
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -290,8 +287,7 @@ import { ParentTabId } from '../../../shared';
   selector: 'app-project-detail',
   imports: [CommonModule, CardModule, ButtonModule],
   templateUrl: './project-detail.component.html',
-  styleUrl: './project-detail.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './project-detail.component.scss'
 })
 export class ProjectDetailComponent implements OnInit {
   /**
@@ -665,7 +661,7 @@ export enum InnerTabComponentType {
 
 ```typescript
 // src/app/components/documents/document-launcher/document-launcher.component.ts
-import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
+import { Component, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -684,8 +680,7 @@ interface Document {
 @Component({
   selector: 'app-document-launcher',
   imports: [CommonModule, ButtonModule, TableModule],
-  templateUrl: './document-launcher.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  templateUrl: './document-launcher.component.html'
 })
 export class DocumentLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.DOCUMENTS;
@@ -804,7 +799,7 @@ export class DocumentLauncherComponent extends BaseTabLauncher {
 
 ```typescript
 // src/app/components/documents/document-viewer/document-viewer.component.ts
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 
@@ -818,8 +813,7 @@ import { CardModule } from 'primeng/card';
         <p>Viewing document content...</p>
       </p-card>
     </div>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class DocumentViewerComponent implements OnInit {
   @Input() tabData?: Record<string, unknown>;
@@ -861,7 +855,7 @@ export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<
 
 ```typescript
 // src/app/components/documents/documents.component.ts
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { DocumentLauncherComponent } from './document-launcher/document-launcher.component';
 
@@ -875,8 +869,7 @@ import { DocumentLauncherComponent } from './document-launcher/document-launcher
       [launcherTitle]="'Documents'"
       [launcherIcon]="'pi pi-file'">
     </app-inner-tab-container>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class DocumentsComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
@@ -893,12 +886,11 @@ export class DocumentsComponent {
 3. **Always use PARENT_TAB_IDS constants** instead of hardcoded strings
 4. **Register components in the launcher's `componentRegistry`** for dynamic loading
 5. **Use signals** with `this.currentTabs()` (with parentheses!)
-6. **Use OnPush change detection** for all components
-7. **Check for existing tabs** before opening to prevent duplicates
-8. **Use singleton pattern** for tabs that should only have one instance
-9. **Pass data through the `data` property** in tab config
-10. **Receive data via `@Input() tabData`** in inner tab components
-11. **The store uses a request pattern** - launchers dispatch `requestAddInnerTab`, container processes it
+6. **Check for existing tabs** before opening to prevent duplicates
+7. **Use singleton pattern** for tabs that should only have one instance
+8. **Pass data through the `data` property** in tab config
+9. **Receive data via `@Input() tabData`** in inner tab components
+10. **The store uses a request pattern** - launchers dispatch `requestAddInnerTab`, container processes it
 
 ---
 

@@ -1,6 +1,6 @@
 # PrimengTabMechanism
 
-This project demonstrates a sophisticated nested tab system built with **Angular 19**, **PrimeNG**, and **NgRx** using modern patterns including Angular Signals and OnPush change detection.
+This project demonstrates a sophisticated nested tab system built with **Angular 19**, **PrimeNG**, and **NgRx** using modern patterns including Angular Signals.
 
 ## Features
 
@@ -8,7 +8,6 @@ This project demonstrates a sophisticated nested tab system built with **Angular
 - 🚀 Angular 19 standalone components with Signals
 - 📦 NgRx state management with request-based pattern
 - 🎨 PrimeNG UI components with new Tabs API
-- ⚡ OnPush change detection for optimal performance
 - 🔧 Extensible launcher system for dynamic tab creation
 
 ## Documentation
