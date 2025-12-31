@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { TaskLauncherComponent } from './task-launcher/task-launcher.component';
 
@@ -16,8 +16,7 @@ import { TaskLauncherComponent } from './task-launcher/task-launcher.component';
       [launcherTitle]="'Task Home'"
       [launcherIcon]="'pi pi-home'">
     </app-inner-tab-container>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class TasksComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;

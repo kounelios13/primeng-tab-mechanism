@@ -1,14 +1,14 @@
 # Copilot Instructions for PrimeNG Tab Mechanism Project
 
 ## Project Overview
-This is an Angular 19 standalone application implementing a sophisticated nested tab system with PrimeNG and NgRx. The project uses **Angular Signals**, **OnPush change detection**, and modern patterns throughout.
+This is an Angular 19 standalone application implementing a sophisticated nested tab system with PrimeNG and NgRx. The project uses **Angular Signals** and modern patterns throughout.
 
 ## Architecture & Key Conventions
 
 ### Angular 19 Modern Patterns
 - **Standalone Components**: No NgModules, all components use `imports` array
 - **Angular Signals**: `toSignal()` for reactive state from NgRx store
-- **OnPush Change Detection**: All components use `ChangeDetectionStrategy.OnPush`
+- **Default Change Detection**: All components use Angular's default change detection strategy
 - **New Control Flow**: `@if`, `@for`, `@switch` instead of `*ngIf`, `*ngFor`
 - **New Tabs API**: Using `p-tabs`, `p-tablist`, `p-tab`, `p-tabpanels`, `p-tabpanel`
 
@@ -155,7 +155,6 @@ All launcher components extend this:
 import { PARENT_TAB_IDS } from '../../../shared';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   // ...
 })
 export class TaskLauncherComponent extends BaseTabLauncher {
@@ -259,8 +258,7 @@ InnerTabActions.clearContext({ parentTabId })
   selector: 'app-feature',
   imports: [CommonModule, TabsModule, ButtonModule],
   templateUrl: './feature.component.html',
-  styleUrl: './feature.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush  // Always use!
+  styleUrl: './feature.component.scss'
 })
 export class FeatureComponent {
   private store = inject(Store);
@@ -312,8 +310,7 @@ export const appConfig: ApplicationConfig = {
 
 ## Performance Best Practices
 
-1. **Always use OnPush**: `changeDetection: ChangeDetectionStrategy.OnPush`
-2. **Use Signals**: Replace `async` pipe with `toSignal()`
-3. **Track items**: Always use `track` in `@for` loops
-4. **Lazy loading**: Heavy tab content should load on demand
-5. **Constants over strings**: Use `PARENT_TAB_IDS` instead of `'tasks'`
+1. **Use Signals**: Replace `async` pipe with `toSignal()` for reactive state
+2. **Track items**: Always use `track` in `@for` loops
+3. **Lazy loading**: Heavy tab content should load on demand
+4. **Constants over strings**: Use `PARENT_TAB_IDS` instead of `'tasks'`

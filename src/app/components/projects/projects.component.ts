@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { ProjectLauncherComponent } from './project-launcher/project-launcher.component';
 
@@ -16,8 +16,7 @@ import { ProjectLauncherComponent } from './project-launcher/project-launcher.co
       [launcherTitle]="'Projects Home'"
       [launcherIcon]="'pi pi-folder'">
     </app-inner-tab-container>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  `
 })
 export class ProjectsComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;

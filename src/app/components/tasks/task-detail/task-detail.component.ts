@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -13,7 +13,6 @@ import { DividerModule } from 'primeng/divider';
   imports: [CommonModule, ButtonModule, TagModule, DividerModule],
   templateUrl: './task-detail.component.html',
   styleUrl: './task-detail.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaskDetailComponent implements OnInit {
   /**

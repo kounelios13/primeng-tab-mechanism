@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, Signal } from '@angular/core';
+import { Component, inject, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
@@ -17,8 +17,7 @@ import { PARENT_TAB_IDS } from '../shared';
   selector: 'app-tab-panel',
   imports: [CommonModule, TabsModule, TasksComponent, OverviewComponent, ProjectsComponent],
   templateUrl: './tab-panel.component.html',
-  styleUrl: './tab-panel.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './tab-panel.component.scss'
 })
 export class TabPanelComponent {
   private readonly store = inject(Store);

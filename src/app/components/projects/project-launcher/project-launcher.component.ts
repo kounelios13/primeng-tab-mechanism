@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
+import { Component, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -15,8 +15,7 @@ import { ProjectSettingsComponent } from '../project-settings/project-settings.c
   selector: 'app-project-launcher',
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './project-launcher.component.html',
-  styleUrl: './project-launcher.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './project-launcher.component.scss'
 })
 export class ProjectLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.PROJECTS;

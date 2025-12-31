@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -14,7 +14,6 @@ import { ParentTabId } from '../../../shared';
   imports: [CommonModule, CardModule, ButtonModule, TabsModule],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectDetailComponent implements OnInit {
   /**

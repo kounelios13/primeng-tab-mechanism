@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
+import { Component, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -15,8 +15,7 @@ import { OverviewReportComponent } from '../overview-report/overview-report.comp
   selector: 'app-overview-launcher',
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './overview-launcher.component.html',
-  styleUrl: './overview-launcher.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './overview-launcher.component.scss'
 })
 export class OverviewLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.OVERVIEW;

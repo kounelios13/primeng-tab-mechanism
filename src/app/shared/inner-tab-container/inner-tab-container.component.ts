@@ -1,4 +1,4 @@
-import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
+import { Component, Input, Type, inject, Signal, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
@@ -38,8 +38,7 @@ import { BaseTabLauncher } from '../base-tab-launcher';
   selector: 'app-inner-tab-container',
   imports: [CommonModule, TabsModule, ButtonModule],
   templateUrl: './inner-tab-container.component.html',
-  styleUrl: './inner-tab-container.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './inner-tab-container.component.scss'
 })
 export class InnerTabContainerComponent implements OnInit {
   private readonly store = inject(Store);

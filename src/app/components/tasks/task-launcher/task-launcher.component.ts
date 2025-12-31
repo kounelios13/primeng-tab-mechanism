@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Type } from '@angular/core';
+import { Component, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -20,8 +20,7 @@ import { TaskFormComponent } from '../task-form/task-form.component';
   selector: 'app-task-launcher',
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './task-launcher.component.html',
-  styleUrl: './task-launcher.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './task-launcher.component.scss'
 })
 export class TaskLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.TASKS;
