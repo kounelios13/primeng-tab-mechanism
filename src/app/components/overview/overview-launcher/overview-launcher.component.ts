@@ -20,6 +20,7 @@ import { OverviewReportComponent } from '../overview-report/overview-report.comp
 })
 export class OverviewLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.OVERVIEW;
+  readonly componentType = InnerTabComponentType.OverviewLauncher;
 
   /**
    * Component registry for overview-related inner tabs.

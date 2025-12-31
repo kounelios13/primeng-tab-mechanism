@@ -25,6 +25,7 @@ import { TaskFormComponent } from '../task-form/task-form.component';
 })
 export class TaskLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.TASKS;
+  readonly componentType = InnerTabComponentType.TaskLauncher;
 
   /**
    * Component registry for task-related inner tabs.

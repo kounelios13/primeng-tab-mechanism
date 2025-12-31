@@ -55,11 +55,6 @@ export class InnerTabContainerComponent implements OnInit {
   @Input({ required: true }) launcherComponent!: Type<BaseTabLauncher>;
 
   /**
-   * The component type enum value for the launcher.
-   */
-  @Input({ required: true }) launcherComponentType!: InnerTabComponentType;
-
-  /**
    * Title for the launcher tab.
    */
   @Input() launcherTitle: string = 'Home';
@@ -194,7 +189,7 @@ export class InnerTabContainerComponent implements OnInit {
       id: `${this.parentTabId}-launcher`,
       parentTabId: this.parentTabId,
       title: this.launcherTitle,
-      componentType: this.launcherComponentType,
+      componentType: this.launcherInstance?.componentType ?? InnerTabComponentType.GenericLauncher,
       icon: this.launcherIcon,
       closable: false
     };
@@ -234,7 +229,7 @@ export class InnerTabContainerComponent implements OnInit {
    */
   getComponent(tab: InnerTabItem): Type<unknown> | undefined {
     // Special case for launcher - use the provided component
-    if (tab.componentType === this.launcherComponentType) {
+    if (this.launcherInstance && tab.componentType === this.launcherInstance.componentType) {
       return this.launcherComponent;
     }
     // Get component from launcher's instance registry

@@ -54,6 +54,12 @@ export abstract class BaseTabLauncher {
   protected abstract parentTabId: ParentTabId;
 
   /**
+   * The component type of this launcher.
+   * Must be set by the extending class.
+   */
+  abstract readonly componentType: InnerTabComponentType;
+
+  /**
    * Component registry mapping InnerTabComponentType to component classes.
    * Each child class should initialize this with their specific components.
    * This can be used in templates to iterate over available components.

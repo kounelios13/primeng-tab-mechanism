@@ -41,7 +41,6 @@ TabPanelComponent (main tabs)
 
 - **BaseTabLauncher**: Abstract base class that provides tab management functionality
 - **InnerTabComponentType**: Enum defining all available inner tab types
-- **TAB_COMPONENT_REGISTRY**: Maps component types to Angular component classes
 - **PARENT_TAB_IDS**: Constants for parent tab identifiers (always use these!)
 - **Angular Signals**: Used for reactive state management with `toSignal()`
 
@@ -133,6 +132,9 @@ import { ProjectSettingsComponent } from '../project-settings/project-settings.c
 export class ProjectLauncherComponent extends BaseTabLauncher {
   // REQUIRED: Set the parent tab ID
   protected parentTabId = PARENT_TAB_IDS.PROJECTS;
+
+  // REQUIRED: Set the component type for this launcher
+  readonly componentType = InnerTabComponentType.ProjectLauncher;
 
   // REQUIRED: Register components for dynamic loading
   override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
@@ -231,28 +233,7 @@ export class ProjectLauncherComponent extends BaseTabLauncher {
 </div>
 ```
 
-### Step 5: Register Components in Registry
-
-Update the global component registry:
-
-```typescript
-// src/app/shared/tab-component-registry.ts
-
-import { ProjectLauncherComponent } from '../components/projects/project-launcher/project-launcher.component';
-import { ProjectDetailComponent } from '../components/projects/project-detail/project-detail.component';
-import { ProjectSettingsComponent } from '../components/projects/project-settings/project-settings.component';
-
-export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<unknown>>> = {
-  // ... existing registrations ...
-  
-  // Projects-related components
-  [InnerTabComponentType.ProjectLauncher]: ProjectLauncherComponent,
-  [InnerTabComponentType.ProjectDetail]: ProjectDetailComponent,
-  [InnerTabComponentType.ProjectSettings]: ProjectSettingsComponent,
-};
-```
-
-### Step 6: Create Parent Component
+### Step 5: Create Parent Component
 
 Create the main parent component that uses InnerTabContainerComponent:
 
@@ -262,7 +243,6 @@ Create the main parent component that uses InnerTabContainerComponent:
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { ProjectLauncherComponent } from './project-launcher/project-launcher.component';
-import { InnerTabComponentType } from '../../store';
 
 @Component({
   selector: 'app-projects',
@@ -271,7 +251,6 @@ import { InnerTabComponentType } from '../../store';
     <app-inner-tab-container
       [parentTabId]="PARENT_TAB_IDS.PROJECTS"
       [launcherComponent]="launcherComponent"
-      [launcherComponentType]="launcherComponentType"
       [launcherTitle]="'Projects Home'"
       [launcherIcon]="'pi pi-folder'">
     </app-inner-tab-container>
@@ -281,7 +260,6 @@ import { InnerTabComponentType } from '../../store';
 export class ProjectsComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
   readonly launcherComponent = ProjectLauncherComponent;
-  readonly launcherComponentType = InnerTabComponentType.ProjectLauncher;
 }
 ```
 
@@ -707,6 +685,7 @@ interface Document {
 })
 export class DocumentLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.DOCUMENTS;
+  readonly componentType = InnerTabComponentType.DocumentLauncher;
 
   override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
     [InnerTabComponentType.DocumentViewer, DocumentViewerComponent],
@@ -870,6 +849,10 @@ export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<
 };
 ```
 
+### 6: Remove Global Registry Reference
+
+**Note:** Previous versions of this guide mentioned a global `TAB_COMPONENT_REGISTRY`. This has been removed for simplification. You only need to register components in your launcher's `componentRegistry`.
+
 ### 7. Parent Component
 
 ```typescript
@@ -877,7 +860,6 @@ export const TAB_COMPONENT_REGISTRY: Partial<Record<InnerTabComponentType, Type<
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
 import { DocumentLauncherComponent } from './document-launcher/document-launcher.component';
-import { InnerTabComponentType } from '../../store';
 
 @Component({
   selector: 'app-documents',
@@ -886,7 +868,6 @@ import { InnerTabComponentType } from '../../store';
     <app-inner-tab-container
       [parentTabId]="PARENT_TAB_IDS.DOCUMENTS"
       [launcherComponent]="launcherComponent"
-      [launcherComponentType]="launcherComponentType"
       [launcherTitle]="'Documents'"
       [launcherIcon]="'pi pi-file'">
     </app-inner-tab-container>
@@ -896,7 +877,6 @@ import { InnerTabComponentType } from '../../store';
 export class DocumentsComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
   readonly launcherComponent = DocumentLauncherComponent;
-  readonly launcherComponentType = InnerTabComponentType.DocumentLauncher;
 }
 ```
 
@@ -905,30 +885,32 @@ export class DocumentsComponent {
 ## Key Takeaways
 
 1. **Always extend BaseTabLauncher** for launcher components
-2. **Always use PARENT_TAB_IDS constants** instead of hardcoded strings
-3. **Always register components** in both the launcher's `componentRegistry` AND the global `TAB_COMPONENT_REGISTRY`
-4. **Use signals** with `this.currentTabs()` (with parentheses!)
-5. **Use OnPush change detection** for all components
-6. **Check for existing tabs** before opening to prevent duplicates
-7. **Use singleton pattern** for tabs that should only have one instance
-8. **Pass data through the `data` property** in tab config
-9. **Receive data via `@Input() tabData`** in inner tab components
-10. **The store uses a request pattern** - launchers dispatch `requestAddInnerTab`, container processes it
+2. **Set the `componentType` property** in your launcher to match its type enum value
+3. **Always use PARENT_TAB_IDS constants** instead of hardcoded strings
+4. **Register components in the launcher's `componentRegistry`** for dynamic loading
+5. **Use signals** with `this.currentTabs()` (with parentheses!)
+6. **Use OnPush change detection** for all components
+7. **Check for existing tabs** before opening to prevent duplicates
+8. **Use singleton pattern** for tabs that should only have one instance
+9. **Pass data through the `data` property** in tab config
+10. **Receive data via `@Input() tabData`** in inner tab components
+11. **The store uses a request pattern** - launchers dispatch `requestAddInnerTab`, container processes it
 
 ---
 
 ## Troubleshooting
 
 ### Tab doesn't open
-- Check that component is registered in both registries
+- Check that component is registered in the launcher's `componentRegistry`
 - Check that componentType enum value exists
+- Verify launcher has `componentType` property set
 - Verify `canOpenTab()` returns true
 - Check browser console for errors
 
 ### Tab opens but shows nothing
 - Verify component is imported in launcher
+- Check that component is registered in launcher's `componentRegistry`
 - Check that component has correct selector
-- Verify TAB_COMPONENT_REGISTRY mapping is correct
 
 ### Multiple tabs open for singleton
 - Ensure `singleton: true` is set in config

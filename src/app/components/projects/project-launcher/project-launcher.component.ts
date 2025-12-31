@@ -20,6 +20,7 @@ import { ProjectSettingsComponent } from '../project-settings/project-settings.c
 })
 export class ProjectLauncherComponent extends BaseTabLauncher {
   protected parentTabId = PARENT_TAB_IDS.PROJECTS;
+  readonly componentType = InnerTabComponentType.ProjectLauncher;
 
   /**
    * Component registry for project-related inner tabs.
