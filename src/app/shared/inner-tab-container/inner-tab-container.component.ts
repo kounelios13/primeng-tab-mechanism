@@ -21,14 +21,16 @@ import { BaseTabLauncher } from '../base-tab-launcher';
  * This component manages a set of inner tabs within a parent tab context.
  * Uses Angular Signals for reactive state management.
  * 
- * Now listens for pending tab requests via selector and dispatches add actions.
+ * Listens for pending tab requests via selector and dispatches add actions.
+ * The launcher component type is automatically derived from the launcher instance.
  * 
  * @example
  * ```html
  * <app-inner-tab-container
  *   [parentTabId]="PARENT_TAB_IDS.TASKS"
  *   [launcherComponent]="TaskLauncherComponent"
- *   [launcherComponentType]="InnerTabComponentType.TaskLauncher">
+ *   [launcherTitle]="'Task Home'"
+ *   [launcherIcon]="'pi pi-home'">
  * </app-inner-tab-container>
  * ```
  */

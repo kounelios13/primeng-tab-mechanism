@@ -25,9 +25,10 @@ import { ParentTabId } from './constants';
  * ```typescript
  * export class TaskLauncherComponent extends BaseTabLauncher {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
+ *   readonly componentType = InnerTabComponentType.TaskLauncher;
  * 
  *   // Initialize component registry for this launcher
- *   protected componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+ *   override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
  *     [InnerTabComponentType.TaskDetail, TaskDetailComponent],
  *     [InnerTabComponentType.TaskForm, TaskFormComponent]
  *   ]);
