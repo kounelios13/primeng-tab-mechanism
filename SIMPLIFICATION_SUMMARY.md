@@ -158,7 +158,7 @@ If you have existing features using the old pattern, here's how to migrate:
 
 ### Step 1: Update Launcher Component
 
-Add the `componentType` property:
+Add the `componentType` property to your launcher:
 
 ```typescript
 export class MyLauncherComponent extends BaseTabLauncher {
@@ -168,6 +168,8 @@ export class MyLauncherComponent extends BaseTabLauncher {
   // ... rest of your code
 }
 ```
+
+**Note:** Replace `MyLauncher` with your actual enum value from `InnerTabComponentType`. If you're creating a new feature, add the enum value to `InnerTabComponentType` first.
 
 ### Step 2: Simplify Wrapper Component
 

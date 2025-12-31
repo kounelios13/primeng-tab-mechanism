@@ -187,6 +187,11 @@ export class InnerTabContainerComponent implements OnInit {
    * Initializes the inner tab context with the launcher tab.
    */
   private initializeContext(): void {
+    // Ensure launcher instance is available
+    if (!this.launcherInstance?.componentType) {
+      console.error('Launcher instance or componentType not found. Ensure launcher extends BaseTabLauncher and sets componentType.');
+    }
+
     const launcherTab: InnerTabItem = {
       id: `${this.parentTabId}-launcher`,
       parentTabId: this.parentTabId,
@@ -228,6 +233,8 @@ export class InnerTabContainerComponent implements OnInit {
 
   /**
    * Gets the component class for a given tab.
+   * Note: launcherInstance is guaranteed to exist after ngOnInit,
+   * but we check for safety in case this is called during initialization.
    */
   getComponent(tab: InnerTabItem): Type<unknown> | undefined {
     // Special case for launcher - use the provided component

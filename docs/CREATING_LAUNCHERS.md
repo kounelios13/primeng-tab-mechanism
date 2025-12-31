@@ -651,11 +651,15 @@ export const PARENT_TAB_IDS = {
 // src/app/store/inner-tab.actions.ts
 export enum InnerTabComponentType {
   // ... existing ...
+  
+  // Documents-related inner tabs (NEW - add these enum values)
   DocumentLauncher = 'document-launcher',
   DocumentViewer = 'document-viewer',
   DocumentEditor = 'document-editor'
 }
 ```
+
+**Important:** Add these enum values to `InnerTabComponentType` before creating the components.
 
 ### 3. Launcher Component
 
