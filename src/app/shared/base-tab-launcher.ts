@@ -203,24 +203,64 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
   /**
    * Maps a store component type to the generic type.
    * Subclasses should override this to provide custom mapping logic.
-   * Default implementation casts the store type to the generic type.
+   * 
+   * **Default implementation**: Uses double casting to convert between types.
+   * This works when your generic enum values are compatible with `InnerTabComponentType` values
+   * (e.g., when both are string enums with matching values).
+   * 
+   * **For custom mappings** (e.g., number enums or incompatible string values),
+   * override this method with your own conversion logic.
    * 
    * @param storeType - The component type from the store
    * @returns The mapped generic type
+   * 
+   * @example
+   * ```typescript
+   * // Custom mapping for number enum
+   * protected override mapStoreTypeToGenericType(storeType: InnerTabComponentType): MyNumberEnum {
+   *   const mapping: Record<InnerTabComponentType, MyNumberEnum> = {
+   *     [InnerTabComponentType.GenericLauncher]: MyNumberEnum.Launcher,
+   *     // ... other mappings
+   *   };
+   *   return mapping[storeType] ?? MyNumberEnum.Launcher;
+   * }
+   * ```
    */
   protected mapStoreTypeToGenericType(storeType: InnerTabComponentType): TComponentType {
+    // Default: Double cast for maximum flexibility
+    // Override this method for custom type conversions
     return storeType as unknown as TComponentType;
   }
 
   /**
    * Maps a generic component type to the store type.
    * Subclasses should override this to provide custom mapping logic.
-   * Default implementation casts the generic type to the store type.
+   * 
+   * **Default implementation**: Uses double casting to convert between types.
+   * This works when your generic enum values are compatible with `InnerTabComponentType` values
+   * (e.g., when both are string enums with matching values).
+   * 
+   * **For custom mappings** (e.g., number enums or incompatible string values),
+   * override this method with your own conversion logic.
    * 
    * @param genericType - The generic component type
    * @returns The mapped store type
+   * 
+   * @example
+   * ```typescript
+   * // Custom mapping for number enum
+   * protected override mapGenericTypeToStoreType(genericType: MyNumberEnum): InnerTabComponentType {
+   *   const mapping: Record<MyNumberEnum, InnerTabComponentType> = {
+   *     [MyNumberEnum.Launcher]: InnerTabComponentType.GenericLauncher,
+   *     // ... other mappings
+   *   };
+   *   return mapping[genericType] ?? InnerTabComponentType.GenericLauncher;
+   * }
+   * ```
    */
   protected mapGenericTypeToStoreType(genericType: TComponentType): InnerTabComponentType {
+    // Default: Double cast for maximum flexibility
+    // Override this method for custom type conversions
     return genericType as unknown as InnerTabComponentType;
   }
 
