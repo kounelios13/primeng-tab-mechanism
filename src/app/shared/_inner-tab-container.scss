@@ -1,7 +1,17 @@
+/**
+ * Shared styles for inner tab containers.
+ * Import this in components that extend BaseInnerTabContainer.
+ * 
+ * @example
+ * ```scss
+ * @import '../shared/inner-tab-container';
+ * ```
+ */
+
 .inner-tab-container {
   height: 100%;
   
-  .inner-tabview {
+  .inner-tabs {
     height: 100%;
   }
 }

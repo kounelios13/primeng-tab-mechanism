@@ -1,8 +1,5 @@
-import { Component, Input, Type, inject, Signal, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Directive, Input, Type, inject, Signal, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { TabsModule } from 'primeng/tabs';
-import { ButtonModule } from 'primeng/button';
 import { Store } from '@ngrx/store';
 import { 
   InnerTabItem, 
@@ -12,58 +9,109 @@ import {
   selectActiveInnerTabId,
   selectPendingRequestsForParent,
   TabRequest
-} from '../../store';
-import { ParentTabId } from '../constants';
-import { BaseTabLauncher } from '../base-tab-launcher';
+} from '../store';
+import { ParentTabId } from './constants';
+import { BaseTabLauncher } from './base-tab-launcher';
 
 /**
- * Generic container component for inner tabs.
- * This component manages a set of inner tabs within a parent tab context.
- * Uses Angular Signals for reactive state management.
+ * Abstract base class for components that manage inner tabs.
+ * Provides all the logic needed to manage inner tabs within a parent tab context.
  * 
- * Listens for pending tab requests via selector and dispatches add actions.
- * The launcher component type is automatically derived from the launcher instance.
+ * This replaces the InnerTabContainerComponent pattern, allowing wrapper components
+ * to directly extend this class and include the template inline, eliminating an
+ * extra component layer.
+ * 
+ * Features:
+ * - Signal-based reactive state management
+ * - Automatic pending request processing via effect
+ * - Component registry resolution from launcher
+ * - Tab lifecycle management (add, remove, activate)
  * 
  * @example
- * ```html
- * <app-inner-tab-container
- *   [parentTabId]="PARENT_TAB_IDS.TASKS"
- *   [launcherComponent]="TaskLauncherComponent"
- *   [launcherTitle]="'Task Home'"
- *   [launcherIcon]="'pi pi-home'">
- * </app-inner-tab-container>
+ * ```typescript
+ * @Component({
+ *   selector: 'app-tasks',
+ *   imports: [CommonModule, TabsModule, ButtonModule],
+ *   template: `
+ *     <div class="inner-tab-container">
+ *       <p-tabs [value]="activeTabId() ?? ''" (valueChange)="onTabValueChange($any($event))">
+ *         <p-tablist>
+ *           @for (tab of innerTabs(); track tab.id) {
+ *             <p-tab [value]="tab.id">
+ *               @if (tab.icon) { <i [class]="tab.icon"></i> }
+ *               <span class="tab-title">{{ tab.title }}</span>
+ *               @if (tab.closable) {
+ *                 <button class="close-button" (click)="closeTab($event, tab.id)">
+ *                   <i class="pi pi-times"></i>
+ *                 </button>
+ *               }
+ *             </p-tab>
+ *           }
+ *         </p-tablist>
+ *         <p-tabpanels>
+ *           @for (tab of innerTabs(); track tab.id) {
+ *             <p-tabpanel [value]="tab.id">
+ *               <div class="inner-tab-content">
+ *                 @if (getComponent(tab); as component) {
+ *                   <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id }">
+ *                   </ng-container>
+ *                 }
+ *               </div>
+ *             </p-tabpanel>
+ *           }
+ *         </p-tabpanels>
+ *       </p-tabs>
+ *     </div>
+ *   `,
+ *   styleUrl: './tasks.component.scss'
+ * })
+ * export class TasksComponent extends BaseInnerTabContainer implements OnInit {
+ *   protected override parentTabId = PARENT_TAB_IDS.TASKS;
+ *   protected override launcherComponent = TaskLauncherComponent;
+ *   protected override launcherTitle = 'Task Home';
+ *   protected override launcherIcon = 'pi pi-home';
+ * 
+ *   ngOnInit(): void {
+ *     this.initializeInnerTabs();
+ *   }
+ * }
  * ```
  */
-@Component({
-  selector: 'app-inner-tab-container',
-  imports: [CommonModule, TabsModule, ButtonModule],
-  templateUrl: './inner-tab-container.component.html',
-  styleUrl: './inner-tab-container.component.scss'
-})
-export class InnerTabContainerComponent implements OnInit {
-  private readonly store = inject(Store);
-  private readonly environmentInjector = inject(EnvironmentInjector);
-
+@Directive()
+export abstract class BaseInnerTabContainer implements OnInit {
   /**
    * The ID of the parent tab this container belongs to.
+   * Must be set by the extending class using PARENT_TAB_IDS constants.
    */
-  @Input({ required: true }) parentTabId!: ParentTabId;
+  protected abstract parentTabId: ParentTabId;
 
   /**
    * The component class to use for the launcher tab.
    * Must extend BaseTabLauncher.
    */
-  @Input({ required: true }) launcherComponent!: Type<BaseTabLauncher>;
+  protected abstract launcherComponent: Type<BaseTabLauncher>;
 
   /**
    * Title for the launcher tab.
+   * Override in subclass to customize.
    */
-  @Input() launcherTitle: string = 'Home';
+  protected launcherTitle: string = 'Home';
 
   /**
    * Icon for the launcher tab.
+   * Override in subclass to customize.
    */
-  @Input() launcherIcon: string = 'pi pi-home';
+  protected launcherIcon: string = 'pi pi-home';
+
+  /**
+   * NgRx Store instance, injected automatically.
+   */
+  protected readonly store = inject(Store);
+
+  /**
+   * Environment injector for creating components outside injection context.
+   */
+  private readonly environmentInjector = inject(EnvironmentInjector);
 
   /**
    * Reference to the launcher component instance for accessing its registry.
@@ -95,36 +143,6 @@ export class InnerTabContainerComponent implements OnInit {
    * Automatically cleaned up as requests are removed from the store.
    */
   private processedRequestIds = new Set<string>();
-
-  ngOnInit(): void {
-    // Initialize signals with injector option
-    this.innerTabs = toSignal(
-      this.store.select(selectInnerTabs(this.parentTabId)),
-      { initialValue: [], injector: this.environmentInjector }
-    );
-    this.activeTabId = toSignal(
-      this.store.select(selectActiveInnerTabId(this.parentTabId)),
-      { initialValue: null, injector: this.environmentInjector }
-    );
-    this.pendingRequests = toSignal(
-      this.store.select(selectPendingRequestsForParent(this.parentTabId)),
-      { initialValue: [], injector: this.environmentInjector }
-    );
-
-    // Create launcher instance to access its component registry
-    if (this.launcherComponent && !this.launcherInstance) {
-      const componentRef = createComponent(this.launcherComponent, {
-        environmentInjector: this.environmentInjector
-      });
-      this.launcherInstance = componentRef.instance as BaseTabLauncher;
-    }
-
-    // Initialize context
-    if (!this.contextInitialized && this.parentTabId) {
-      this.initializeContext();
-      this.contextInitialized = true;
-    }
-  }
 
   constructor() {
     // Use effect to handle pending tab requests
@@ -159,6 +177,44 @@ export class InnerTabContainerComponent implements OnInit {
         });
       }
     });
+  }
+
+  ngOnInit(): void {
+    // Subclasses should call initializeInnerTabs() in their ngOnInit
+  }
+
+  /**
+   * Initializes the inner tab system.
+   * Must be called from subclass ngOnInit after setting parentTabId and launcherComponent.
+   */
+  protected initializeInnerTabs(): void {
+    // Initialize signals with injector option
+    this.innerTabs = toSignal(
+      this.store.select(selectInnerTabs(this.parentTabId)),
+      { initialValue: [], injector: this.environmentInjector }
+    );
+    this.activeTabId = toSignal(
+      this.store.select(selectActiveInnerTabId(this.parentTabId)),
+      { initialValue: null, injector: this.environmentInjector }
+    );
+    this.pendingRequests = toSignal(
+      this.store.select(selectPendingRequestsForParent(this.parentTabId)),
+      { initialValue: [], injector: this.environmentInjector }
+    );
+
+    // Create launcher instance to access its component registry
+    if (this.launcherComponent && !this.launcherInstance) {
+      const componentRef = createComponent(this.launcherComponent, {
+        environmentInjector: this.environmentInjector
+      });
+      this.launcherInstance = componentRef.instance as BaseTabLauncher;
+    }
+
+    // Initialize context
+    if (!this.contextInitialized && this.parentTabId) {
+      this.initializeContext();
+      this.contextInitialized = true;
+    }
   }
 
   /**
@@ -210,7 +266,7 @@ export class InnerTabContainerComponent implements OnInit {
    * Handles tab value change events from PrimeNG Tabs.
    * The value is the tab ID string.
    */
-  onTabValueChange(tabId: string): void {
+  protected onTabValueChange(tabId: string): void {
     if (tabId && tabId !== this.activeTabId()) {
       this.store.dispatch(InnerTabActions.setActiveInnerTab({
         parentTabId: this.parentTabId,
@@ -222,7 +278,7 @@ export class InnerTabContainerComponent implements OnInit {
   /**
    * Closes a tab by its ID.
    */
-  closeTab(event: Event, tabId: string): void {
+  protected closeTab(event: Event, tabId: string): void {
     event.stopPropagation();
     this.store.dispatch(InnerTabActions.removeInnerTab({
       parentTabId: this.parentTabId,
@@ -235,7 +291,7 @@ export class InnerTabContainerComponent implements OnInit {
    * Note: launcherInstance is guaranteed to exist after ngOnInit,
    * but we check for safety in case this is called during initialization.
    */
-  getComponent(tab: InnerTabItem): Type<unknown> | undefined {
+  protected getComponent(tab: InnerTabItem): Type<unknown> | undefined {
     // Special case for launcher - use the provided component
     if (this.launcherInstance && tab.componentType === this.launcherInstance.componentType) {
       return this.launcherComponent;
