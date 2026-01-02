@@ -1,4 +1,4 @@
-import { Component, Input, Type, inject, Signal, ChangeDetectionStrategy, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
+import { Component, Input, Type, inject, Signal, effect, OnInit, EnvironmentInjector, createComponent } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
@@ -21,14 +21,16 @@ import { BaseTabLauncher } from '../base-tab-launcher';
  * This component manages a set of inner tabs within a parent tab context.
  * Uses Angular Signals for reactive state management.
  * 
- * Now listens for pending tab requests via selector and dispatches add actions.
+ * Listens for pending tab requests via selector and dispatches add actions.
+ * The launcher component type is automatically derived from the launcher instance.
  * 
  * @example
  * ```html
  * <app-inner-tab-container
  *   [parentTabId]="PARENT_TAB_IDS.TASKS"
  *   [launcherComponent]="TaskLauncherComponent"
- *   [launcherComponentType]="InnerTabComponentType.TaskLauncher">
+ *   [launcherTitle]="'Task Home'"
+ *   [launcherIcon]="'pi pi-home'">
  * </app-inner-tab-container>
  * ```
  */
@@ -36,8 +38,7 @@ import { BaseTabLauncher } from '../base-tab-launcher';
   selector: 'app-inner-tab-container',
   imports: [CommonModule, TabsModule, ButtonModule],
   templateUrl: './inner-tab-container.component.html',
-  styleUrl: './inner-tab-container.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './inner-tab-container.component.scss'
 })
 export class InnerTabContainerComponent implements OnInit {
   private readonly store = inject(Store);
@@ -53,11 +54,6 @@ export class InnerTabContainerComponent implements OnInit {
    * Must extend BaseTabLauncher.
    */
   @Input({ required: true }) launcherComponent!: Type<BaseTabLauncher>;
-
-  /**
-   * The component type enum value for the launcher.
-   */
-  @Input({ required: true }) launcherComponentType!: InnerTabComponentType;
 
   /**
    * Title for the launcher tab.
@@ -190,11 +186,16 @@ export class InnerTabContainerComponent implements OnInit {
    * Initializes the inner tab context with the launcher tab.
    */
   private initializeContext(): void {
+    // Ensure launcher instance is available
+    if (!this.launcherInstance?.componentType) {
+      console.error('Launcher instance or componentType not found. Ensure launcher extends BaseTabLauncher and sets componentType.');
+    }
+
     const launcherTab: InnerTabItem = {
       id: `${this.parentTabId}-launcher`,
       parentTabId: this.parentTabId,
       title: this.launcherTitle,
-      componentType: this.launcherComponentType,
+      componentType: this.launcherInstance?.componentType ?? InnerTabComponentType.GenericLauncher,
       icon: this.launcherIcon,
       closable: false
     };
@@ -231,10 +232,12 @@ export class InnerTabContainerComponent implements OnInit {
 
   /**
    * Gets the component class for a given tab.
+   * Note: launcherInstance is guaranteed to exist after ngOnInit,
+   * but we check for safety in case this is called during initialization.
    */
   getComponent(tab: InnerTabItem): Type<unknown> | undefined {
     // Special case for launcher - use the provided component
-    if (tab.componentType === this.launcherComponentType) {
+    if (this.launcherInstance && tab.componentType === this.launcherInstance.componentType) {
       return this.launcherComponent;
     }
     // Get component from launcher's instance registry

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,6 @@ import { ButtonModule } from 'primeng/button';
   imports: [CommonModule, CardModule, ButtonModule],
   templateUrl: './overview-chart.component.html',
   styleUrl: './overview-chart.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OverviewChartComponent implements OnInit {
   /**

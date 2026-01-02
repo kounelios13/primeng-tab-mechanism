@@ -25,9 +25,10 @@ import { ParentTabId } from './constants';
  * ```typescript
  * export class TaskLauncherComponent extends BaseTabLauncher {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
+ *   readonly componentType = InnerTabComponentType.TaskLauncher;
  * 
  *   // Initialize component registry for this launcher
- *   protected componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+ *   override componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
  *     [InnerTabComponentType.TaskDetail, TaskDetailComponent],
  *     [InnerTabComponentType.TaskForm, TaskFormComponent]
  *   ]);
@@ -52,6 +53,12 @@ export abstract class BaseTabLauncher {
    * Must be set by the extending class using PARENT_TAB_IDS constants.
    */
   protected abstract parentTabId: ParentTabId;
+
+  /**
+   * The component type of this launcher.
+   * Must be set by the extending class.
+   */
+  abstract readonly componentType: InnerTabComponentType;
 
   /**
    * Component registry mapping InnerTabComponentType to component classes.

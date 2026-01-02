@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -16,7 +16,6 @@ import { ParentTabId } from '../../../shared';
   imports: [CommonModule, FormsModule, CardModule, ButtonModule, InputTextModule, InputSwitchModule],
   templateUrl: './project-settings.component.html',
   styleUrl: './project-settings.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectSettingsComponent implements OnInit {
   /**
