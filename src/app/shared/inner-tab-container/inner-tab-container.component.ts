@@ -241,6 +241,7 @@ export class InnerTabContainerComponent implements OnInit {
       return this.launcherComponent;
     }
     // Get component from launcher's instance registry
-    return this.launcherInstance?.componentRegistry.get(tab.componentType);
+    // Cast componentType to any since the registry can have different key types
+    return this.launcherInstance?.componentRegistry.get(tab.componentType as any);
   }
 }

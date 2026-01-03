@@ -27,12 +27,14 @@ export enum InnerTabComponentType {
 
 /**
  * Interface for inner tab items that belong to a parent main tab.
+ * The componentType is agnostic and can be a string, number, or undefined,
+ * allowing different launchers to use their own enum types.
  */
 export interface InnerTabItem {
   id: string;
   parentTabId: string;
   title: string;
-  componentType: InnerTabComponentType;
+  componentType: string | number | undefined;
   icon?: string;
   closable: boolean;
   singleton?: boolean;  // If true, only one instance of this tab type can exist

@@ -3,37 +3,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { 
   InnerTabActions, 
-  InnerTabConfig as StoreInnerTabConfig, 
+  InnerTabConfig, 
   InnerTabComponentType,
-  InnerTabItem as StoreInnerTabItem,
+  InnerTabItem,
   selectInnerTabs 
 } from '../store';
 import { ParentTabId } from './constants';
-
-/**
- * Generic interface for inner tab items that belong to a parent main tab.
- * This allows launchers to use custom enum types for component types.
- * 
- * @template TComponentType - The type used for component types (can be string enum, number enum, etc.)
- */
-export interface InnerTabItem<TComponentType = InnerTabComponentType> {
-  id: string;
-  parentTabId: string;
-  title: string;
-  componentType: TComponentType;
-  icon?: string;
-  closable: boolean;
-  singleton?: boolean;
-  data?: Record<string, unknown>;
-}
-
-/**
- * Generic configuration for creating a new inner tab.
- * parentTabId is added automatically by the launcher.
- * 
- * @template TComponentType - The type used for component types (can be string enum, number enum, etc.)
- */
-export type InnerTabConfig<TComponentType = InnerTabComponentType> = Omit<InnerTabItem<TComponentType>, 'parentTabId'>;
 
 /**
  * Abstract base class for tab launcher components.
@@ -49,9 +24,8 @@ export type InnerTabConfig<TComponentType = InnerTabComponentType> = Omit<InnerT
  * @template TComponentType - The enum type used for component types (can be string enum, number enum, etc.)
  * 
  * @remarks
- * The generic type parameter allows you to use custom enums (string-based or number-based)
- * for better type safety in your launcher component. The base launcher will handle the
- * conversion between your custom enum type and the store's `InnerTabComponentType`.
+ * The store is agnostic to component types (accepts string | number | undefined),
+ * so you can use any enum type directly without conversion.
  * 
  * @example
  * ```typescript
@@ -115,7 +89,7 @@ export type InnerTabConfig<TComponentType = InnerTabComponentType> = Omit<InnerT
  * ```
  */
 @Directive()
-export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
+export abstract class BaseTabLauncher<TComponentType extends string | number | undefined = InnerTabComponentType> {
   /**
    * The ID of the parent tab this launcher belongs to.
    * Must be set by the extending class using PARENT_TAB_IDS constants.
@@ -169,99 +143,16 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
    * Automatically updates when store changes.
    * Note: Initialized lazily in getter due to abstract parentTabId.
    */
-  private _currentTabs?: Signal<InnerTabItem<TComponentType>[]>;
+  private _currentTabs?: Signal<InnerTabItem[]>;
 
-  protected get currentTabs(): Signal<InnerTabItem<TComponentType>[]> {
+  protected get currentTabs(): Signal<InnerTabItem[]> {
     if (!this._currentTabs) {
-      const storeTabs = toSignal(
+      this._currentTabs = toSignal(
         this.store.select(selectInnerTabs(this.parentTabId)), 
         { initialValue: [], injector: this.injector }
       );
-      
-      // Map store tabs to generic tabs
-      this._currentTabs = computed(() => 
-        storeTabs().map(tab => this.mapStoreTabToGenericTab(tab))
-      );
     }
     return this._currentTabs;
-  }
-
-  /**
-   * Maps a store tab item to a generic tab item.
-   * Subclasses can override this to provide custom mapping logic.
-   * 
-   * @param storeTab - The tab item from the store
-   * @returns The mapped generic tab item
-   */
-  protected mapStoreTabToGenericTab(storeTab: StoreInnerTabItem): InnerTabItem<TComponentType> {
-    return {
-      ...storeTab,
-      componentType: this.mapStoreTypeToGenericType(storeTab.componentType)
-    };
-  }
-
-  /**
-   * Maps a store component type to the generic type.
-   * Subclasses should override this to provide custom mapping logic.
-   * 
-   * **Default implementation**: Uses double casting to convert between types.
-   * This works when your generic enum values are compatible with `InnerTabComponentType` values
-   * (e.g., when both are string enums with matching values).
-   * 
-   * **For custom mappings** (e.g., number enums or incompatible string values),
-   * override this method with your own conversion logic.
-   * 
-   * @param storeType - The component type from the store
-   * @returns The mapped generic type
-   * 
-   * @example
-   * ```typescript
-   * // Custom mapping for number enum
-   * protected override mapStoreTypeToGenericType(storeType: InnerTabComponentType): MyNumberEnum {
-   *   const mapping: Record<InnerTabComponentType, MyNumberEnum> = {
-   *     [InnerTabComponentType.GenericLauncher]: MyNumberEnum.Launcher,
-   *     // ... other mappings
-   *   };
-   *   return mapping[storeType] ?? MyNumberEnum.Launcher;
-   * }
-   * ```
-   */
-  protected mapStoreTypeToGenericType(storeType: InnerTabComponentType): TComponentType {
-    // Default: Double cast for maximum flexibility
-    // Override this method for custom type conversions
-    return storeType as unknown as TComponentType;
-  }
-
-  /**
-   * Maps a generic component type to the store type.
-   * Subclasses should override this to provide custom mapping logic.
-   * 
-   * **Default implementation**: Uses double casting to convert between types.
-   * This works when your generic enum values are compatible with `InnerTabComponentType` values
-   * (e.g., when both are string enums with matching values).
-   * 
-   * **For custom mappings** (e.g., number enums or incompatible string values),
-   * override this method with your own conversion logic.
-   * 
-   * @param genericType - The generic component type
-   * @returns The mapped store type
-   * 
-   * @example
-   * ```typescript
-   * // Custom mapping for number enum
-   * protected override mapGenericTypeToStoreType(genericType: MyNumberEnum): InnerTabComponentType {
-   *   const mapping: Record<MyNumberEnum, InnerTabComponentType> = {
-   *     [MyNumberEnum.Launcher]: InnerTabComponentType.GenericLauncher,
-   *     // ... other mappings
-   *   };
-   *   return mapping[genericType] ?? InnerTabComponentType.GenericLauncher;
-   * }
-   * ```
-   */
-  protected mapGenericTypeToStoreType(genericType: TComponentType): InnerTabComponentType {
-    // Default: Double cast for maximum flexibility
-    // Override this method for custom type conversions
-    return genericType as unknown as InnerTabComponentType;
   }
 
   /**
@@ -275,7 +166,7 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
    * @param config - Configuration for the new inner tab
    * @returns true if tab was opened, false if blocked (singleton exists or canOpenTab returned false)
    */
-  protected openInnerTab(config: InnerTabConfig<TComponentType>): boolean {
+  protected openInnerTab(config: InnerTabConfig): boolean {
     const tabs = this.currentTabs();
     
     // Check if singleton and already exists
@@ -288,21 +179,15 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
     }
 
     // Check custom validation
-    if (!this.canOpenTab(config.componentType, config)) {
+    if (!this.canOpenTab(config.componentType as TComponentType, config as any)) {
       return false;
     }
 
-    // Convert generic config to store config
-    const storeConfig: StoreInnerTabConfig = {
-      ...config,
-      componentType: this.mapGenericTypeToStoreType(config.componentType)
-    };
-
-    // Dispatch request action instead of directly adding the tab
+    // Dispatch request action
     this.store.dispatch(InnerTabActions.requestAddInnerTab({
       parentTabId: this.parentTabId,
       tab: {
-        ...storeConfig,
+        ...config,
         parentTabId: this.parentTabId
       }
     }));
@@ -318,7 +203,7 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
    * @param config - The full tab configuration
    * @returns true if the tab can be opened, false otherwise
    */
-  protected canOpenTab(componentType: TComponentType, config: InnerTabConfig<TComponentType>): boolean {
+  protected canOpenTab(componentType: TComponentType, config: InnerTabConfig): boolean {
     // Default implementation: always allow
     // Subclasses can override for custom logic
     return true;
@@ -340,7 +225,7 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
    * @param componentType - The component type to find
    * @returns The tab item if found, undefined otherwise
    */
-  protected findTabByType(componentType: TComponentType): InnerTabItem<TComponentType> | undefined {
+  protected findTabByType(componentType: TComponentType): InnerTabItem | undefined {
     return this.currentTabs().find(tab => tab.componentType === componentType);
   }
 
@@ -350,7 +235,7 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
    * @param tabId - The tab ID to find
    * @returns The tab item if found, undefined otherwise
    */
-  protected findTabById(tabId: string): InnerTabItem<TComponentType> | undefined {
+  protected findTabById(tabId: string): InnerTabItem | undefined {
     return this.currentTabs().find(tab => tab.id === tabId);
   }
 
@@ -397,21 +282,11 @@ export abstract class BaseTabLauncher<TComponentType = InnerTabComponentType> {
    * @param tabId - The ID of the tab to update
    * @param updates - Partial properties to update
    */
-  protected updateInnerTab(tabId: string, updates: Partial<InnerTabConfig<TComponentType>>): void {
-    // Convert generic updates to store updates
-    const storeUpdates: Partial<StoreInnerTabConfig> = {
-      ...updates
-    } as Partial<StoreInnerTabConfig>;
-    
-    // Handle componentType conversion separately to avoid type issues
-    if (updates.componentType !== undefined) {
-      storeUpdates.componentType = this.mapGenericTypeToStoreType(updates.componentType);
-    }
-    
+  protected updateInnerTab(tabId: string, updates: Partial<InnerTabConfig>): void {
     this.store.dispatch(InnerTabActions.updateInnerTab({
       parentTabId: this.parentTabId,
       tabId,
-      updates: storeUpdates
+      updates
     }));
   }
 

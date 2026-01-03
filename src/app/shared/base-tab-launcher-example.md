@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `BaseTabLauncher` class now accepts a generic type parameter that allows you to specify a custom enum for component types. This provides better type safety and flexibility for different tab contexts. **The enum can be string-based or number-based.**
+The `BaseTabLauncher` class accepts a generic type parameter for component types, and the store is fully agnostic - it accepts `string | number | undefined` for component types. This provides maximum flexibility for different tab contexts.
 
 ## Default Usage (Backward Compatible)
 
@@ -36,11 +36,11 @@ export class TaskLauncherComponent extends BaseTabLauncher<InnerTabComponentType
 
 ## Custom String Enum Usage
 
-You can now define your own string-based enum and use it with `BaseTabLauncher`:
+You can define your own string-based enum:
 
 ```typescript
-import { BaseTabLauncher, PARENT_TAB_IDS, InnerTabConfig } from '../../../shared';
-import { InnerTabComponentType } from '../../../store';
+import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
+import { InnerTabConfig } from '../../../store';
 
 // Define a custom string enum for your feature
 enum MyFeatureComponentType {
@@ -71,10 +71,10 @@ export class MyFeatureLauncherComponent extends BaseTabLauncher<MyFeatureCompone
     });
   }
 
-  // The canOpenTab method now uses your custom enum type
+  // The canOpenTab method uses your custom enum type
   protected override canOpenTab(
     componentType: MyFeatureComponentType, 
-    config: InnerTabConfig<MyFeatureComponentType>
+    config: InnerTabConfig
   ): boolean {
     if (componentType === MyFeatureComponentType.MyFeatureDetail) {
       // Custom logic for your feature
@@ -84,39 +84,16 @@ export class MyFeatureLauncherComponent extends BaseTabLauncher<MyFeatureCompone
     }
     return true;
   }
-  
-  // Override mapping methods to convert between your enum and the store enum
-  protected override mapStoreTypeToGenericType(storeType: InnerTabComponentType): MyFeatureComponentType {
-    // Custom mapping logic based on your requirements
-    switch (storeType) {
-      case InnerTabComponentType.GenericLauncher:
-        return MyFeatureComponentType.MyFeatureLauncher;
-      // ... add other mappings as needed
-      default:
-        return storeType as unknown as MyFeatureComponentType;
-    }
-  }
-  
-  protected override mapGenericTypeToStoreType(genericType: MyFeatureComponentType): InnerTabComponentType {
-    // Custom mapping logic based on your requirements
-    switch (genericType) {
-      case MyFeatureComponentType.MyFeatureLauncher:
-        return InnerTabComponentType.GenericLauncher;
-      // ... add other mappings as needed
-      default:
-        return genericType as unknown as InnerTabComponentType;
-    }
-  }
 }
 ```
 
 ## Custom Number Enum Usage
 
-You can also use number-based enums:
+You can also use number-based enums directly:
 
 ```typescript
-import { BaseTabLauncher, PARENT_TAB_IDS, InnerTabConfig } from '../../../shared';
-import { InnerTabComponentType } from '../../../store';
+import { BaseTabLauncher, PARENT_TAB_IDS } from '../../../shared';
+import { InnerTabConfig } from '../../../store';
 
 // Define a custom number enum
 enum FeatureTabType {
@@ -147,27 +124,16 @@ export class FeatureLauncherComponent extends BaseTabLauncher<FeatureTabType> {
     });
   }
 
-  // Override mapping methods for number enum
-  protected override mapStoreTypeToGenericType(storeType: InnerTabComponentType): FeatureTabType {
-    // Map store string enum to number enum
-    const mapping: Record<string, FeatureTabType> = {
-      'generic-launcher': FeatureTabType.Launcher,
-      'feature-detail': FeatureTabType.Detail,
-      'feature-form': FeatureTabType.Form,
-      'settings': FeatureTabType.Settings
-    };
-    return mapping[storeType] ?? FeatureTabType.Launcher;
-  }
-  
-  protected override mapGenericTypeToStoreType(genericType: FeatureTabType): InnerTabComponentType {
-    // Map number enum to store string enum
-    const mapping: Record<FeatureTabType, InnerTabComponentType> = {
-      [FeatureTabType.Launcher]: InnerTabComponentType.GenericLauncher,
-      [FeatureTabType.Detail]: InnerTabComponentType.Settings, // or a custom type
-      [FeatureTabType.Form]: InnerTabComponentType.Settings,
-      [FeatureTabType.Settings]: InnerTabComponentType.Settings
-    };
-    return mapping[genericType] ?? InnerTabComponentType.GenericLauncher;
+  protected override canOpenTab(
+    componentType: FeatureTabType,
+    config: InnerTabConfig
+  ): boolean {
+    if (componentType === FeatureTabType.Detail) {
+      return this.currentTabs().filter(
+        tab => tab.componentType === FeatureTabType.Detail
+      ).length < 5;
+    }
+    return true;
   }
 }
 ```
@@ -175,25 +141,25 @@ export class FeatureLauncherComponent extends BaseTabLauncher<FeatureTabType> {
 ## Benefits
 
 1. **Type Safety**: Your custom enum provides compile-time type checking for component types
-2. **Better IntelliSense**: IDEs can provide autocomplete for your custom enum values
+2. **Better IntelliSense**: IDEs provide autocomplete for your custom enum values
 3. **Flexibility**: Each feature can have its own set of component types
 4. **Number Enums Supported**: Use number-based enums if that suits your architecture
-5. **Backward Compatible**: Existing code continues to work without changes
-6. **Full Control**: Override mapping methods to control conversion between your enum and the store
+5. **Store Agnostic**: The store accepts `string | number | undefined`, no conversion needed
+6. **No Mapping Required**: Direct usage of your enum values without conversion layers
 
-## Mapping Methods
+## Store Agnostic Design
 
-The `BaseTabLauncher` provides two methods you can override for custom type conversions:
+The `InnerTabItem` interface in the store uses `componentType: string | number | undefined`, making it fully agnostic to the type of enum you use. This means:
 
-- `mapStoreTypeToGenericType(storeType: InnerTabComponentType): TComponentType` - Converts store types to your generic type
-- `mapGenericTypeToStoreType(genericType: TComponentType): InnerTabComponentType` - Converts your generic type to store types
-
-The default implementation uses type casting (`as unknown as`), which works fine when your enum values match the store enum values. For custom mappings (especially with number enums), override these methods.
+- **No type conversion** - Your enum values are stored directly
+- **Maximum flexibility** - Use any enum type (string, number, or even undefined)
+- **Simple implementation** - No need to override mapping methods
+- **Backward compatible** - Existing `InnerTabComponentType` enum still works
 
 ## Important Notes
 
-- The generic type parameter has no constraints - it can be any type (string enum, number enum, etc.)
-- The `BaseTabLauncher` handles all conversions between your custom type and the store's `InnerTabComponentType`
-- Override the mapping methods (`mapStoreTypeToGenericType` and `mapGenericTypeToStoreType`) when you need custom conversion logic
+- The generic type parameter must extend `string | number | undefined`
+- The store is fully agnostic and stores your enum values directly
 - All tab-related methods (`openInnerTab`, `canOpenTab`, `isTabTypeOpen`, `findTabByType`, etc.) work with your custom type
+- No conversion or mapping is required between your enum and the store
 
