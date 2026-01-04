@@ -309,10 +309,9 @@ export abstract class BaseTabWrapper<TComponentType extends string | number | un
    * Initializes the inner tab context.
    */
   private initializeContext(): void {
-    // Initialize context without launcher
+    // Initialize context
     this.store.dispatch(InnerTabActions.initContext({
-      parentTabId: this.parentTabId,
-      launcherTab: null
+      parentTabId: this.parentTabId
     }));
 
     // Add initial tabs
