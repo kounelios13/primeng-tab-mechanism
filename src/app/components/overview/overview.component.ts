@@ -5,6 +5,12 @@ import { OverviewLauncherComponent } from './overview-launcher/overview-launcher
 /**
  * Main Overview tab component.
  * Uses the InnerTabContainerComponent to manage nested tabs for overview operations.
+ * 
+ * Currently using the traditional launcher approach.
+ * 
+ * To use initial tabs, see the example in:
+ * - docs/HIDING_LAUNCHER_AND_INITIAL_TABS.md
+ * - src/app/components/projects/projects.component.ts
  */
 @Component({
   selector: 'app-overview',
@@ -22,3 +28,4 @@ export class OverviewComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
   readonly launcherComponent = OverviewLauncherComponent;
 }
+
