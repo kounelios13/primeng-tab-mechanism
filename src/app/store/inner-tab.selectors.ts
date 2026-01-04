@@ -84,7 +84,7 @@ export const selectActiveInnerTabIndex = (parentTabId: string) => createSelector
  * Factory selector to find a tab by its component type within a parent context.
  * Returns the first matching tab or undefined if not found.
  */
-export const selectInnerTabByType = (parentTabId: string, componentType: InnerTabComponentType) => createSelector(
+export const selectInnerTabByType = (parentTabId: string, componentType: string | number | undefined) => createSelector(
   selectInnerTabs(parentTabId),
   (tabs): InnerTabItem | undefined => tabs.find(tab => tab.componentType === componentType)
 );
@@ -92,7 +92,7 @@ export const selectInnerTabByType = (parentTabId: string, componentType: InnerTa
 /**
  * Factory selector to check if a tab of given component type exists within a parent context.
  */
-export const selectIsTabTypeOpen = (parentTabId: string, componentType: InnerTabComponentType) => createSelector(
+export const selectIsTabTypeOpen = (parentTabId: string, componentType: string | number | undefined) => createSelector(
   selectInnerTabs(parentTabId),
   (tabs): boolean => tabs.some(tab => tab.componentType === componentType)
 );

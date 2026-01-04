@@ -21,9 +21,15 @@ import { ParentTabId } from './constants';
  * - canOpenTab() method that can be overridden for custom logic
  * - Automatic focus on existing tab when singleton is opened
  * 
+ * @template TComponentType - The enum type used for component types (can be string enum, number enum, etc.)
+ * 
+ * @remarks
+ * The store is agnostic to component types (accepts string | number | undefined),
+ * so you can use any enum type directly without conversion.
+ * 
  * @example
  * ```typescript
- * export class TaskLauncherComponent extends BaseTabLauncher {
+ * export class TaskLauncherComponent extends BaseTabLauncher<InnerTabComponentType> {
  *   protected parentTabId = PARENT_TAB_IDS.TASKS;
  *   readonly componentType = InnerTabComponentType.TaskLauncher;
  * 
@@ -45,9 +51,45 @@ import { ParentTabId } from './constants';
  *   }
  * }
  * ```
+ * 
+ * @example With custom string enum
+ * ```typescript
+ * enum CustomComponentType {
+ *   CustomLauncher = 'custom-launcher',
+ *   CustomDetail = 'custom-detail',
+ *   CustomForm = 'custom-form'
+ * }
+ * 
+ * export class CustomLauncherComponent extends BaseTabLauncher<CustomComponentType> {
+ *   protected parentTabId = PARENT_TAB_IDS.CUSTOM;
+ *   readonly componentType = CustomComponentType.CustomLauncher;
+ * 
+ *   override componentRegistry = new Map<CustomComponentType, Type<unknown>>([
+ *     [CustomComponentType.CustomDetail, CustomDetailComponent]
+ *   ]);
+ * }
+ * ```
+ * 
+ * @example With custom number enum
+ * ```typescript
+ * enum FeatureTabType {
+ *   Launcher = 0,
+ *   Detail = 1,
+ *   Form = 2
+ * }
+ * 
+ * export class FeatureLauncherComponent extends BaseTabLauncher<FeatureTabType> {
+ *   protected parentTabId = PARENT_TAB_IDS.FEATURE;
+ *   readonly componentType = FeatureTabType.Launcher;
+ * 
+ *   override componentRegistry = new Map<FeatureTabType, Type<unknown>>([
+ *     [FeatureTabType.Detail, FeatureDetailComponent]
+ *   ]);
+ * }
+ * ```
  */
 @Directive()
-export abstract class BaseTabLauncher {
+export abstract class BaseTabLauncher<TComponentType extends string | number | undefined = InnerTabComponentType> {
   /**
    * The ID of the parent tab this launcher belongs to.
    * Must be set by the extending class using PARENT_TAB_IDS constants.
@@ -58,10 +100,10 @@ export abstract class BaseTabLauncher {
    * The component type of this launcher.
    * Must be set by the extending class.
    */
-  abstract readonly componentType: InnerTabComponentType;
+  abstract readonly componentType: TComponentType;
 
   /**
-   * Component registry mapping InnerTabComponentType to component classes.
+   * Component registry mapping component type to component classes.
    * Each child class should initialize this with their specific components.
    * This can be used in templates to iterate over available components.
    * 
@@ -73,7 +115,7 @@ export abstract class BaseTabLauncher {
    * ]);
    * ```
    */
-  componentRegistry: Map<InnerTabComponentType, Type<unknown>> = new Map();
+  componentRegistry: Map<TComponentType, Type<unknown>> = new Map();
 
   /**
    * Data passed from the inner tab system via ngComponentOutlet.
@@ -137,11 +179,11 @@ export abstract class BaseTabLauncher {
     }
 
     // Check custom validation
-    if (!this.canOpenTab(config.componentType, config)) {
+    if (!this.canOpenTab(config.componentType as TComponentType, config as any)) {
       return false;
     }
 
-    // Dispatch request action instead of directly adding the tab
+    // Dispatch request action
     this.store.dispatch(InnerTabActions.requestAddInnerTab({
       parentTabId: this.parentTabId,
       tab: {
@@ -161,7 +203,7 @@ export abstract class BaseTabLauncher {
    * @param config - The full tab configuration
    * @returns true if the tab can be opened, false otherwise
    */
-  protected canOpenTab(componentType: InnerTabComponentType, config: InnerTabConfig): boolean {
+  protected canOpenTab(componentType: TComponentType, config: InnerTabConfig): boolean {
     // Default implementation: always allow
     // Subclasses can override for custom logic
     return true;
@@ -173,7 +215,7 @@ export abstract class BaseTabLauncher {
    * @param componentType - The component type to check
    * @returns true if a tab of this type exists
    */
-  protected isTabTypeOpen(componentType: InnerTabComponentType): boolean {
+  protected isTabTypeOpen(componentType: TComponentType): boolean {
     return this.currentTabs().some(tab => tab.componentType === componentType);
   }
 
@@ -183,7 +225,7 @@ export abstract class BaseTabLauncher {
    * @param componentType - The component type to find
    * @returns The tab item if found, undefined otherwise
    */
-  protected findTabByType(componentType: InnerTabComponentType): InnerTabItem | undefined {
+  protected findTabByType(componentType: TComponentType): InnerTabItem | undefined {
     return this.currentTabs().find(tab => tab.componentType === componentType);
   }
 
