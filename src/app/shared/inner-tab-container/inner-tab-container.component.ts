@@ -15,11 +15,7 @@ import {
 } from '../../store';
 import { ParentTabId } from '../constants';
 import { BaseTabLauncher } from '../base-tab-launcher';
-
-/**
- * Type for component registry - maps component type identifiers to component classes.
- */
-export type ComponentRegistry = Map<string | number | undefined, Type<unknown>>;
+import { ComponentRegistry } from '../base-tab-wrapper';
 
 /**
  * Generic container component for inner tabs.

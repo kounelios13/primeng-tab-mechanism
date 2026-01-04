@@ -8,7 +8,7 @@ By default, the `InnerTabContainerComponent` creates a launcher tab as the first
 
 1. **Hide the launcher tab** by setting `showLauncher="false"`
 2. **Open initial tabs automatically** by providing an `initialTabs` array
-3. **Use wrapper mode** (NEW): Provide a `componentRegistry` directly without a launcher component
+3. **Use wrapper mode** (NEW): Extend `BaseTabWrapper` to create a component that manages tabs via the store
 4. **Use both features together** to create a custom tab experience
 
 ## Use Cases
@@ -17,35 +17,99 @@ By default, the `InnerTabContainerComponent` creates a launcher tab as the first
 - **Project workspaces**: Pre-load project details, settings, and other relevant tabs
 - **Multi-document interface**: Open recent documents automatically
 - **Wizard-style workflows**: Pre-configure multiple steps as tabs
-- **Wrapper mode**: Manage tabs from services or other components without a UI launcher
+- **Wrapper mode**: Manage tabs via store actions with automatic rendering
 
 ## Basic Configuration
 
-### Option 1: Wrapper Mode (No Launcher Component) - NEW
+### Option 1: Wrapper Mode (Extends BaseTabWrapper) - RECOMMENDED
 
-The recommended approach is to create a wrapper class that extends `BaseTabWrapper`. This provides:
+The recommended approach is to create a component that extends `BaseTabWrapper`. This provides:
 - A component registry for dynamic tab loading
-- Methods to open specific tab types
+- Store-based action handling - child classes dispatch actions through the store
+- The base class listens to store actions filtered by `parentTabId`
 - Tab management utilities (find, close, focus tabs)
 
 ```typescript
-// Step 1: Create a wrapper class
-// src/app/components/projects/project-tab-wrapper.ts
+// src/app/components/projects/projects.component.ts
 
-import { Type } from '@angular/core';
+import { Component, Type } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TabsModule } from 'primeng/tabs';
+import { ButtonModule } from 'primeng/button';
 import { BaseTabWrapper, PARENT_TAB_IDS, ComponentRegistry } from '../../shared';
-import { InnerTabComponentType } from '../../store';
+import { InnerTabComponentType, InnerTabItem, InnerTabConfig } from '../../store';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
 import { ProjectSettingsComponent } from './project-settings/project-settings.component';
 
-export class ProjectTabWrapper extends BaseTabWrapper<InnerTabComponentType> {
+@Component({
+  selector: 'app-projects',
+  standalone: true,
+  imports: [CommonModule, TabsModule, ButtonModule],
+  template: `
+    <div class="inner-tab-container">
+      @if (innerTabs().length > 0) {
+        <p-tabs 
+          [value]="activeTabId() ?? ''"
+          (valueChange)="onTabValueChange($any($event))">
+          <p-tablist>
+            @for (tab of innerTabs(); track tab.id) {
+              <p-tab [value]="tab.id">
+                @if (tab.icon) { <i [class]="tab.icon"></i> }
+                <span>{{ tab.title }}</span>
+                @if (tab.closable) {
+                  <button (click)="closeTab($event, tab.id)">
+                    <i class="pi pi-times"></i>
+                  </button>
+                }
+              </p-tab>
+            }
+          </p-tablist>
+          <p-tabpanels>
+            @for (tab of innerTabs(); track tab.id) {
+              <p-tabpanel [value]="tab.id">
+                @if (getComponent(tab); as component) {
+                  <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id }"></ng-container>
+                }
+              </p-tabpanel>
+            }
+          </p-tabpanels>
+        </p-tabs>
+      }
+    </div>
+  `
+})
+export class ProjectsComponent extends BaseTabWrapper<InnerTabComponentType> {
+  // Define parent tab ID
   readonly parentTabId = PARENT_TAB_IDS.PROJECTS;
 
+  // Define component registry - each child class has its own
   readonly componentRegistry: ComponentRegistry = new Map([
     [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
     [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
   ]);
+  
+  // Define initial tabs
+  override readonly initialTabs: InnerTabItem[] = [
+    {
+      id: 'project-detail-1',
+      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      title: 'Website Redesign',
+      componentType: InnerTabComponentType.ProjectDetail,
+      icon: 'pi pi-folder',
+      closable: true,
+      data: { projectId: '1', projectName: 'Website Redesign' }
+    }
+  ];
 
+  // Custom validation - override canOpenTab
+  protected override canOpenTab(componentType: InnerTabComponentType, config: InnerTabConfig): boolean {
+    if (componentType === InnerTabComponentType.ProjectDetail) {
+      return this.innerTabs().filter(t => t.componentType === componentType).length < 5;
+    }
+    return true;
+  }
+
+  // Custom methods to open specific tabs - dispatches actions through the store
   openProjectDetail(projectId: string, projectName: string): void {
     const tabId = `project-detail-${projectId}`;
     if (this.findTabById(tabId)) {
@@ -56,7 +120,6 @@ export class ProjectTabWrapper extends BaseTabWrapper<InnerTabComponentType> {
       id: tabId,
       title: projectName,
       componentType: InnerTabComponentType.ProjectDetail,
-      icon: 'pi pi-folder',
       closable: true,
       data: { projectId, projectName }
     });
@@ -67,7 +130,6 @@ export class ProjectTabWrapper extends BaseTabWrapper<InnerTabComponentType> {
       id: 'project-settings',
       title: 'Project Settings',
       componentType: InnerTabComponentType.ProjectSettings,
-      icon: 'pi pi-cog',
       closable: true,
       singleton: true
     });
@@ -75,49 +137,12 @@ export class ProjectTabWrapper extends BaseTabWrapper<InnerTabComponentType> {
 }
 ```
 
-```typescript
-// Step 2: Use the wrapper in your component
-// src/app/components/projects/projects.component.ts
-
-import { Component } from '@angular/core';
-import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
-import { InnerTabComponentType, InnerTabItem } from '../../store';
-import { ProjectTabWrapper } from './project-tab-wrapper';
-
-@Component({
-  selector: 'app-projects',
-  imports: [InnerTabContainerComponent],
-  template: `
-    <app-inner-tab-container
-      [parentTabId]="wrapper.parentTabId"
-      [componentRegistry]="wrapper.componentRegistry"
-      [showLauncher]="false"
-      [initialTabs]="initialTabs">
-    </app-inner-tab-container>
-  `
-})
-export class ProjectsComponent {
-  readonly wrapper = new ProjectTabWrapper();
-  
-  readonly initialTabs: InnerTabItem[] = [
-    {
-      id: 'project-1',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
-      title: 'Project One',
-      componentType: InnerTabComponentType.ProjectDetail,
-      icon: 'pi pi-folder',
-      closable: true,
-      data: { projectId: '1' }
-    }
-  ];
-}
-```
-
-**Benefits of Wrapper Mode:**
-- Clean separation of tab management logic into wrapper class
-- Each wrapper class has its own component registry
-- Methods to open specific tab types with proper validation
-- Tabs can still be opened dynamically via wrapper methods from any part of the application
+**Key Benefits of Wrapper Mode:**
+- Child classes dispatch actions through the store
+- Base class listens to store actions filtered by `parentTabId`
+- Each child class has its own component registry
+- No `new` instantiation needed - Angular DI handles everything
+- Automatic tab rendering based on store state
 
 ### Option 2: Hide Launcher Only
 
