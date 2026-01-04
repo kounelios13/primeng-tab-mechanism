@@ -1,13 +1,16 @@
-import { Component } from '@angular/core';
-import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
-import { ProjectLauncherComponent } from './project-launcher/project-launcher.component';
+import { Component, Type } from '@angular/core';
+import { InnerTabContainerComponent, PARENT_TAB_IDS, ComponentRegistry } from '../../shared';
 import { InnerTabComponentType, InnerTabItem } from '../../store';
+import { ProjectDetailComponent } from './project-detail/project-detail.component';
+import { ProjectSettingsComponent } from './project-settings/project-settings.component';
 
 /**
  * Main Projects component that wraps the inner tab system.
- * Uses InnerTabContainerComponent to manage launcher and inner tabs.
+ * Uses InnerTabContainerComponent to manage dynamic inner tabs.
  * 
- * This example demonstrates hiding the launcher tab and opening initial tabs instead.
+ * This example demonstrates the **wrapper mode** - using a component registry
+ * directly without a launcher component. This allows dynamic tabs to be
+ * automatically rendered based on store requests.
  */
 @Component({
   selector: 'app-projects',
@@ -15,23 +18,24 @@ import { InnerTabComponentType, InnerTabItem } from '../../store';
   template: `
     <app-inner-tab-container
       [parentTabId]="PARENT_TAB_IDS.PROJECTS"
-      [launcherComponent]="launcherComponent"
-      [launcherTitle]="'Projects Home'"
-      [launcherIcon]="'pi pi-folder'"
-      [showLauncher]="showLauncher"
+      [componentRegistry]="componentRegistry"
+      [showLauncher]="false"
       [initialTabs]="initialTabs">
     </app-inner-tab-container>
   `
 })
 export class ProjectsComponent {
   readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
-  readonly launcherComponent = ProjectLauncherComponent;
   
   /**
-   * Set to false to hide the launcher tab.
-   * Toggle this to see the difference.
+   * Component registry for project-related inner tabs.
+   * Maps component types to their component classes for dynamic loading.
+   * This replaces the need for a launcher component.
    */
-  readonly showLauncher = false;
+  readonly componentRegistry: ComponentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+    [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+  ]);
   
   /**
    * Initial tabs to open when the Projects tab is activated.

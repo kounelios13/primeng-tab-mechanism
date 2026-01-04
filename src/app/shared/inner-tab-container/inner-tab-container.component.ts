@@ -17,12 +17,22 @@ import { ParentTabId } from '../constants';
 import { BaseTabLauncher } from '../base-tab-launcher';
 
 /**
+ * Type for component registry - maps component type identifiers to component classes.
+ */
+export type ComponentRegistry = Map<string | number | undefined, Type<unknown>>;
+
+/**
  * Generic container component for inner tabs.
  * This component manages a set of inner tabs within a parent tab context.
  * Uses Angular Signals for reactive state management.
  * 
  * Listens for pending tab requests via selector and dispatches add actions.
- * The launcher component type is automatically derived from the launcher instance.
+ * 
+ * Supports two modes of operation:
+ * 1. **With launcher component** (traditional): Provide a `launcherComponent` that extends `BaseTabLauncher`.
+ *    The component registry is derived from the launcher instance.
+ * 2. **Without launcher (wrapper mode)**: Provide a `componentRegistry` directly and set `showLauncher="false"`.
+ *    This allows dynamic tabs to be rendered automatically without a launcher component.
  * 
  * @example Basic usage with launcher
  * ```html
@@ -34,11 +44,11 @@ import { BaseTabLauncher } from '../base-tab-launcher';
  * </app-inner-tab-container>
  * ```
  * 
- * @example Without launcher, with initial tabs
+ * @example Without launcher, with component registry (wrapper mode)
  * ```html
  * <app-inner-tab-container
  *   [parentTabId]="PARENT_TAB_IDS.PROJECTS"
- *   [launcherComponent]="ProjectLauncherComponent"
+ *   [componentRegistry]="projectComponentRegistry"
  *   [showLauncher]="false"
  *   [initialTabs]="initialProjectTabs">
  * </app-inner-tab-container>
@@ -73,8 +83,29 @@ export class InnerTabContainerComponent implements OnInit {
   /**
    * The component class to use for the launcher tab.
    * Must extend BaseTabLauncher.
+   * 
+   * Either `launcherComponent` or `componentRegistry` must be provided.
+   * If both are provided, the launcher's registry takes precedence for launcher-related components,
+   * but the direct `componentRegistry` can be used to supplement additional component mappings.
    */
-  @Input({ required: true }) launcherComponent!: Type<BaseTabLauncher>;
+  @Input() launcherComponent?: Type<BaseTabLauncher>;
+
+  /**
+   * Direct component registry for mapping component types to component classes.
+   * Use this when you want to render dynamic tabs without a launcher component.
+   * 
+   * Either `launcherComponent` or `componentRegistry` must be provided.
+   * When both are provided, lookups first check the launcher's registry, then fall back to this registry.
+   * 
+   * @example
+   * ```typescript
+   * componentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+   *   [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+   *   [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+   * ]);
+   * ```
+   */
+  @Input() componentRegistry?: ComponentRegistry;
 
   /**
    * Title for the launcher tab.
@@ -89,14 +120,14 @@ export class InnerTabContainerComponent implements OnInit {
   /**
    * Whether to show the launcher as a tab.
    * If false, the launcher will not be added as a tab.
-   * Default: true
+   * Default: true (but automatically set to false if no launcherComponent is provided)
    */
   @Input() showLauncher: boolean = true;
 
   /**
    * Initial tabs to open when the container is initialized.
    * These tabs will be opened automatically after initialization.
-   * Note: The launcher component must be provided to register the components.
+   * When using wrapper mode (without launcher), this is the primary way to add initial tabs.
    */
   @Input() initialTabs: InnerTabItem[] = [];
 
@@ -132,6 +163,16 @@ export class InnerTabContainerComponent implements OnInit {
   private processedRequestIds = new Set<string>();
 
   ngOnInit(): void {
+    // Validate configuration - either launcherComponent or componentRegistry must be provided
+    if (!this.launcherComponent && !this.componentRegistry) {
+      console.error('InnerTabContainerComponent: Either launcherComponent or componentRegistry must be provided.');
+    }
+
+    // If no launcher component is provided, automatically disable showLauncher
+    if (!this.launcherComponent) {
+      this.showLauncher = false;
+    }
+
     // Initialize signals with injector option
     this.innerTabs = toSignal(
       this.store.select(selectInnerTabs(this.parentTabId)),
@@ -146,7 +187,7 @@ export class InnerTabContainerComponent implements OnInit {
       { initialValue: [], injector: this.environmentInjector }
     );
 
-    // Create launcher instance to access its component registry
+    // Create launcher instance to access its component registry (only if launcher is provided)
     if (this.launcherComponent && !this.launcherInstance) {
       const componentRef = createComponent(this.launcherComponent, {
         environmentInjector: this.environmentInjector
@@ -222,17 +263,17 @@ export class InnerTabContainerComponent implements OnInit {
    * and any initial tabs.
    */
   private initializeContext(): void {
-    // Ensure launcher instance is available
-    if (!this.launcherInstance?.componentType) {
+    // Only show warning if launcher is expected but not available
+    if (this.showLauncher && !this.launcherInstance?.componentType) {
       console.error('Launcher instance or componentType not found. Ensure launcher extends BaseTabLauncher and sets componentType.');
     }
 
-    // Create launcher tab or null if showLauncher is false
-    const launcherTab: InnerTabItem | null = this.showLauncher ? {
+    // Create launcher tab or null if showLauncher is false or no launcher provided
+    const launcherTab: InnerTabItem | null = (this.showLauncher && this.launcherInstance) ? {
       id: `${this.parentTabId}-launcher`,
       parentTabId: this.parentTabId,
       title: this.launcherTitle,
-      componentType: this.launcherInstance?.componentType ?? InnerTabComponentType.GenericLauncher,
+      componentType: this.launcherInstance.componentType ?? InnerTabComponentType.GenericLauncher,
       icon: this.launcherIcon,
       closable: false
     } : null;
@@ -285,16 +326,24 @@ export class InnerTabContainerComponent implements OnInit {
 
   /**
    * Gets the component class for a given tab.
-   * Note: launcherInstance is guaranteed to exist after ngOnInit,
-   * but we check for safety in case this is called during initialization.
+   * Looks up the component in the following order:
+   * 1. If launcher is provided and tab type matches launcher, return the launcher component
+   * 2. Check the launcher's component registry
+   * 3. Check the direct componentRegistry input
    */
   getComponent(tab: InnerTabItem): Type<unknown> | undefined {
-    // Special case for launcher - use the provided component
-    if (this.launcherInstance && tab.componentType === this.launcherInstance.componentType) {
+    // Special case for launcher - use the provided launcher component
+    if (this.launcherInstance && this.launcherComponent && tab.componentType === this.launcherInstance.componentType) {
       return this.launcherComponent;
     }
-    // Get component from launcher's instance registry
-    // Cast componentType to any since the registry can have different key types
-    return this.launcherInstance?.componentRegistry.get(tab.componentType as any);
+    
+    // First check launcher's registry (if available)
+    const fromLauncher = this.launcherInstance?.componentRegistry.get(tab.componentType as any);
+    if (fromLauncher) {
+      return fromLauncher;
+    }
+    
+    // Fall back to direct componentRegistry input
+    return this.componentRegistry?.get(tab.componentType);
   }
 }

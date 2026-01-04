@@ -8,7 +8,8 @@ By default, the `InnerTabContainerComponent` creates a launcher tab as the first
 
 1. **Hide the launcher tab** by setting `showLauncher="false"`
 2. **Open initial tabs automatically** by providing an `initialTabs` array
-3. **Use both features together** to create a custom tab experience
+3. **Use wrapper mode** (NEW): Provide a `componentRegistry` directly without a launcher component
+4. **Use both features together** to create a custom tab experience
 
 ## Use Cases
 
@@ -16,10 +17,62 @@ By default, the `InnerTabContainerComponent` creates a launcher tab as the first
 - **Project workspaces**: Pre-load project details, settings, and other relevant tabs
 - **Multi-document interface**: Open recent documents automatically
 - **Wizard-style workflows**: Pre-configure multiple steps as tabs
+- **Wrapper mode**: Manage tabs from services or other components without a UI launcher
 
 ## Basic Configuration
 
-### Option 1: Hide Launcher Only
+### Option 1: Wrapper Mode (No Launcher Component) - NEW
+
+The simplest approach when you don't need a launcher UI. Provide a `componentRegistry` directly:
+
+```typescript
+import { Component, Type } from '@angular/core';
+import { InnerTabContainerComponent, PARENT_TAB_IDS, ComponentRegistry } from '../../shared';
+import { InnerTabComponentType, InnerTabItem } from '../../store';
+import { ProjectDetailComponent } from './project-detail/project-detail.component';
+import { ProjectSettingsComponent } from './project-settings/project-settings.component';
+
+@Component({
+  selector: 'app-my-feature',
+  imports: [InnerTabContainerComponent],
+  template: `
+    <app-inner-tab-container
+      [parentTabId]="PARENT_TAB_IDS.MYFEATURE"
+      [componentRegistry]="componentRegistry"
+      [showLauncher]="false"
+      [initialTabs]="initialTabs">
+    </app-inner-tab-container>
+  `
+})
+export class MyFeatureComponent {
+  readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
+  
+  // Component registry maps component types to component classes
+  readonly componentRegistry: ComponentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+    [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+  ]);
+  
+  readonly initialTabs: InnerTabItem[] = [
+    {
+      id: 'project-1',
+      parentTabId: PARENT_TAB_IDS.MYFEATURE,
+      title: 'Project One',
+      componentType: InnerTabComponentType.ProjectDetail,
+      icon: 'pi pi-folder',
+      closable: true,
+      data: { projectId: '1' }
+    }
+  ];
+}
+```
+
+**Benefits of Wrapper Mode:**
+- No need to create a launcher component class
+- Simpler setup for dynamic tab interfaces
+- Tabs can still be opened dynamically via the store from any part of the application
+
+### Option 2: Hide Launcher Only
 
 Hide the launcher tab but keep the ability to open tabs dynamically:
 
@@ -41,9 +94,9 @@ export class MyFeatureComponent {
 }
 ```
 
-**Note**: Even though the launcher is hidden, the `launcherComponent` is still required because it provides the component registry for dynamic tab loading.
+**Note**: When using a launcher component with `showLauncher="false"`, the launcher still provides the component registry for dynamic tab loading. Alternatively, use wrapper mode (Option 1) to provide the registry directly.
 
-### Option 2: With Initial Tabs
+### Option 3: With Initial Tabs
 
 Open specific tabs automatically when the parent tab loads:
 
@@ -90,7 +143,7 @@ export class MyFeatureComponent {
 }
 ```
 
-### Option 3: Launcher with Initial Tabs
+### Option 4: Launcher with Initial Tabs
 
 Keep the launcher visible but also open initial tabs:
 
@@ -119,9 +172,174 @@ export class MyFeatureComponent {
 }
 ```
 
-## Complete Example: Projects Tab
+## Complete Example: Projects Tab (Wrapper Mode)
 
-Here's a real example from the Projects component showing how to hide the launcher and open three initial tabs:
+Here's a real example from the Projects component using wrapper mode - no launcher component needed:
+
+### Step 1: Create the Component
+
+```typescript
+// src/app/components/projects/projects.component.ts
+
+import { Component, Type } from '@angular/core';
+import { InnerTabContainerComponent, PARENT_TAB_IDS, ComponentRegistry } from '../../shared';
+import { InnerTabComponentType, InnerTabItem } from '../../store';
+import { ProjectDetailComponent } from './project-detail/project-detail.component';
+import { ProjectSettingsComponent } from './project-settings/project-settings.component';
+
+@Component({
+  selector: 'app-projects',
+  imports: [InnerTabContainerComponent],
+  template: `
+    <app-inner-tab-container
+      [parentTabId]="PARENT_TAB_IDS.PROJECTS"
+      [componentRegistry]="componentRegistry"
+      [showLauncher]="false"
+      [initialTabs]="initialTabs">
+    </app-inner-tab-container>
+  `
+})
+export class ProjectsComponent {
+  readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
+  
+  // Component registry maps component types to component classes
+  readonly componentRegistry: ComponentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
+    [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+    [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+  ]);
+  
+  readonly initialTabs: InnerTabItem[] = [
+    {
+      id: 'project-detail-1',
+      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      title: 'Website Redesign',
+      componentType: InnerTabComponentType.ProjectDetail,
+      icon: 'pi pi-folder',
+      closable: true,
+      data: { projectId: '1', projectName: 'Website Redesign' }
+    },
+    {
+      id: 'project-detail-2',
+      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      title: 'Mobile App Development',
+      componentType: InnerTabComponentType.ProjectDetail,
+      icon: 'pi pi-folder',
+      closable: true,
+      data: { projectId: '2', projectName: 'Mobile App Development' }
+    },
+    {
+      id: 'project-settings',
+      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      title: 'Project Settings',
+      componentType: InnerTabComponentType.ProjectSettings,
+      icon: 'pi pi-cog',
+      closable: true,
+      data: { mode: 'settings' }
+    }
+  ];
+}
+```
+
+### Step 2: Components Are Ready
+
+With wrapper mode, you don't need a launcher component! Simply ensure your inner tab components exist and are mapped in the `componentRegistry`.
+
+## Opening Tabs Dynamically in Wrapper Mode
+
+Even without a launcher component, you can still open tabs dynamically using the `BaseTabWrapper` utility class or by dispatching store actions directly.
+
+### Using BaseTabWrapper (Recommended)
+
+Create a service that extends `BaseTabWrapper`:
+
+```typescript
+// src/app/components/projects/project-tab-manager.service.ts
+
+import { Injectable } from '@angular/core';
+import { BaseTabWrapper, PARENT_TAB_IDS } from '../../shared';
+import { InnerTabComponentType } from '../../store';
+
+@Injectable({ providedIn: 'root' })
+export class ProjectTabManagerService extends BaseTabWrapper<InnerTabComponentType> {
+  protected parentTabId = PARENT_TAB_IDS.PROJECTS;
+
+  openProjectDetail(projectId: string, projectName: string): void {
+    const tabId = `project-detail-${projectId}`;
+    
+    // Check if already open
+    if (this.findTabById(tabId)) {
+      this.focusExistingTab(tabId);
+      return;
+    }
+
+    this.openInnerTab({
+      id: tabId,
+      title: projectName,
+      componentType: InnerTabComponentType.ProjectDetail,
+      icon: 'pi pi-folder',
+      closable: true,
+      data: { projectId, projectName }
+    });
+  }
+
+  openProjectSettings(): void {
+    this.openInnerTab({
+      id: 'project-settings',
+      title: 'Project Settings',
+      componentType: InnerTabComponentType.ProjectSettings,
+      icon: 'pi pi-cog',
+      closable: true,
+      singleton: true
+    });
+  }
+}
+```
+
+Then inject and use it anywhere in your app:
+
+```typescript
+export class SomeOtherComponent {
+  private projectTabs = inject(ProjectTabManagerService);
+
+  openProject(project: Project): void {
+    this.projectTabs.openProjectDetail(project.id, project.name);
+  }
+}
+```
+
+### Using Store Actions Directly
+
+You can also dispatch store actions directly:
+
+```typescript
+import { inject } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { InnerTabActions, InnerTabComponentType } from '../../store';
+import { PARENT_TAB_IDS } from '../../shared';
+
+export class SomeComponent {
+  private store = inject(Store);
+
+  openProject(projectId: string): void {
+    this.store.dispatch(InnerTabActions.requestAddInnerTab({
+      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      tab: {
+        id: `project-detail-${projectId}`,
+        parentTabId: PARENT_TAB_IDS.PROJECTS,
+        title: `Project ${projectId}`,
+        componentType: InnerTabComponentType.ProjectDetail,
+        icon: 'pi pi-folder',
+        closable: true,
+        data: { projectId }
+      }
+    }));
+  }
+}
+```
+
+## Legacy Example: With Launcher Component
+
+If you prefer the traditional approach with a launcher component, here's how:
 
 ### Step 1: Create the Component
 
@@ -152,33 +370,7 @@ export class ProjectsComponent {
   readonly launcherComponent = ProjectLauncherComponent;
   
   readonly initialTabs: InnerTabItem[] = [
-    {
-      id: 'project-detail-1',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
-      title: 'Website Redesign',
-      componentType: InnerTabComponentType.ProjectDetail,
-      icon: 'pi pi-folder',
-      closable: true,
-      data: { projectId: '1', projectName: 'Website Redesign' }
-    },
-    {
-      id: 'project-detail-2',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
-      title: 'Mobile App Development',
-      componentType: InnerTabComponentType.ProjectDetail,
-      icon: 'pi pi-folder',
-      closable: true,
-      data: { projectId: '2', projectName: 'Mobile App Development' }
-    },
-    {
-      id: 'project-settings',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
-      title: 'Project Settings',
-      componentType: InnerTabComponentType.ProjectSettings,
-      icon: 'pi pi-cog',
-      closable: true,
-      data: { mode: 'settings' }
-    }
+    // ... your tabs
   ];
 }
 ```
@@ -266,35 +458,50 @@ export class DynamicTabsComponent {
 
 ## Important Notes
 
-### Launcher Component Still Required
+### Providing a Component Source
 
-Even when `showLauncher="false"`, you must still provide a `launcherComponent`:
+You must provide either a `launcherComponent` OR a `componentRegistry`:
 
 ```typescript
-// ✅ Correct - launcher component provided
+// ✅ Option 1: Wrapper mode - provide componentRegistry directly
 <app-inner-tab-container
+  [parentTabId]="PARENT_TAB_IDS.PROJECTS"
+  [componentRegistry]="componentRegistry"
+  [showLauncher]="false"
+  [initialTabs]="initialTabs">
+</app-inner-tab-container>
+
+// ✅ Option 2: Traditional mode - provide launcher component
+<app-inner-tab-container
+  [parentTabId]="PARENT_TAB_IDS.PROJECTS"
   [launcherComponent]="MyLauncherComponent"
   [showLauncher]="false"
   [initialTabs]="initialTabs">
 </app-inner-tab-container>
 
-// ❌ Wrong - will cause errors
+// ❌ Wrong - neither provided, will cause errors
 <app-inner-tab-container
+  [parentTabId]="PARENT_TAB_IDS.PROJECTS"
   [showLauncher]="false"
   [initialTabs]="initialTabs">
 </app-inner-tab-container>
 ```
 
-The launcher component is needed because:
-1. It provides the component registry for loading dynamic tabs
-2. It can still be used programmatically to open new tabs
-3. It maintains consistency in the architecture
-
 ### Component Registry
 
-All components referenced in `initialTabs` must be registered in the launcher's `componentRegistry`:
+All components referenced in `initialTabs` must be registered either:
+1. In the `componentRegistry` input (wrapper mode)
+2. In the launcher's `componentRegistry` property (traditional mode)
 
 ```typescript
+// Wrapper mode - register in parent component
+readonly componentRegistry: ComponentRegistry = new Map([
+  [InnerTabComponentType.Dashboard, DashboardComponent],  // ✅ Registered
+  [InnerTabComponentType.Settings, SettingsComponent],     // ✅ Registered
+  [InnerTabComponentType.Report, ReportComponent]          // ✅ Registered
+]);
+
+// Traditional mode - register in launcher component
 export class MyLauncherComponent extends BaseTabLauncher {
   override componentRegistry = new Map([
     [InnerTabComponentType.Dashboard, DashboardComponent],  // ✅ Registered
@@ -450,12 +657,13 @@ readonly initialTabs: InnerTabItem[] = [
 4. **Pass relevant data**: Use the `data` property to pass context to your tab components
 5. **Consider performance**: Each tab component is initialized, so be mindful of heavy components
 6. **Test thoroughly**: Verify that closing and reopening the parent tab works correctly
+7. **Prefer wrapper mode**: For simpler setups, use `componentRegistry` directly instead of creating a launcher component
 
 ## Examples in the Repository
 
 See these files for working examples:
 
-- `src/app/components/projects/projects.component.ts` - Projects without launcher, with initial tabs
+- `src/app/components/projects/projects.component.ts` - **Wrapper mode**: Projects using direct componentRegistry, no launcher
 - `src/app/components/tasks/tasks.component.ts` - Tasks with launcher (traditional approach)
 - `src/app/components/overview/overview.component.ts` - Overview with launcher (traditional approach)
 
@@ -466,11 +674,26 @@ See these files for working examples:
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
 | `parentTabId` | `ParentTabId` | Required | ID of the parent tab context |
-| `launcherComponent` | `Type<BaseTabLauncher>` | Required | Launcher component class (even if hidden) |
+| `launcherComponent` | `Type<BaseTabLauncher>` | Optional* | Launcher component class. Either this or `componentRegistry` is required. |
+| `componentRegistry` | `ComponentRegistry` | Optional* | Direct component registry. Either this or `launcherComponent` is required. |
 | `launcherTitle` | `string` | `'Home'` | Title for launcher tab (if shown) |
 | `launcherIcon` | `string` | `'pi pi-home'` | Icon for launcher tab (if shown) |
-| `showLauncher` | `boolean` | `true` | Whether to show launcher as a tab |
+| `showLauncher` | `boolean` | `true` | Whether to show launcher as a tab. Automatically `false` if no `launcherComponent`. |
 | `initialTabs` | `InnerTabItem[]` | `[]` | Tabs to open automatically |
+
+*Either `launcherComponent` or `componentRegistry` must be provided.
+
+### ComponentRegistry Type
+
+```typescript
+type ComponentRegistry = Map<string | number | undefined, Type<unknown>>;
+
+// Example usage
+const registry: ComponentRegistry = new Map([
+  [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+  [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+]);
+```
 
 ### InnerTabItem Interface
 
