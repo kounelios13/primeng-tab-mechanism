@@ -1,14 +1,23 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
 import { TabActions, TabItem } from './tab.actions';
 
+/**
+ * State interface for the main tab panel.
+ */
 export interface TabState {
+  /** Array of all main tabs */
   tabs: TabItem[];
+  /** ID of the currently active main tab, or null if none */
   activeTabId: string | null;
 }
 
 /**
- * Initial state with Tasks, Overview, and Projects tabs.
- * These IDs must match PARENT_TAB_IDS constants.
+ * Initial state with default main tabs.
+ * 
+ * These tab IDs MUST match the values in PARENT_TAB_IDS constants
+ * to ensure proper routing of inner tab actions.
+ * 
+ * @see PARENT_TAB_IDS in shared/constants.ts
  */
 export const initialState: TabState = {
   tabs: [

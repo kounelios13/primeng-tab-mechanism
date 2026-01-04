@@ -29,6 +29,23 @@ BaseTabWrapper (abstract base component)
     └── ProjectSettingsComponent (inner tab content)
 ```
 
+## Key Concepts
+
+### Parent Tab ID
+
+Each tab wrapper is associated with a unique `parentTabId` from the `PARENT_TAB_IDS` constants. This ID is used to:
+- Scope inner tabs to their parent context
+- Filter store selectors to the correct tab context
+- Dispatch actions to the correct parent
+
+### Component Registry
+
+Each wrapper defines a `componentRegistry` that maps `InnerTabComponentType` enum values to their corresponding component classes. This enables dynamic component loading within the tab panels.
+
+### Initial Tabs
+
+Wrappers can optionally define `initialTabs` - an array of tabs that open automatically when the wrapper is initialized.
+
 ## Creating a Tab Wrapper Component
 
 Each parent tab component extends `BaseTabWrapper` and uses the shared template:
@@ -248,3 +265,53 @@ readonly componentRegistry: ComponentRegistry = new Map([
   [InnerTabComponentType.MyNewComponent, MyNewComponent]
 ]);
 ```
+
+## Store Structure
+
+### Inner Tab State
+
+The inner tab state is organized by parent tab context:
+
+```typescript
+interface InnerTabState {
+  contexts: Record<string, InnerTabContextState>;
+  pendingRequests: TabRequest[];
+}
+
+interface InnerTabContextState {
+  innerTabs: InnerTabItem[];
+  activeInnerTabId: string | null;
+}
+```
+
+### Pending Requests Pattern
+
+The system uses a request-based pattern for opening tabs:
+
+1. **Request**: `InnerTabActions.requestAddInnerTab` adds a pending request to the store
+2. **Process**: The `BaseTabWrapper` watches for pending requests via an effect
+3. **Complete**: The wrapper dispatches `InnerTabActions.addInnerTab` to actually add the tab
+
+This pattern enables decoupled tab opening from any component in the application.
+
+## Troubleshooting
+
+### Component Not Rendering
+
+If a tab shows "Component not registered for type", ensure:
+1. The component is registered in the wrapper's `componentRegistry`
+2. The `componentType` value matches exactly between the tab config and registry
+
+### Tabs Not Opening
+
+If tabs aren't opening when dispatching actions:
+1. Verify the `parentTabId` matches between the action and the wrapper
+2. Check that the wrapper is initialized (visible on screen)
+3. Ensure `singleton: true` tabs don't already exist
+
+### State Not Updating
+
+If tab state seems stale:
+1. Use NgRx DevTools to verify actions are dispatched
+2. Check that selectors are using the correct `parentTabId`
+3. Verify signals are properly initialized in `ngOnInit`

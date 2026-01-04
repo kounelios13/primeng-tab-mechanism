@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideStore } from '@ngrx/store';
 import { TasksComponent } from './tasks.component';
+import { tabFeature, innerTabFeature } from '../../store';
 
 describe('TasksComponent', () => {
   let component: TasksComponent;
@@ -8,7 +9,13 @@ describe('TasksComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TasksComponent]
+      imports: [TasksComponent],
+      providers: [
+        provideStore({
+          [tabFeature.name]: tabFeature.reducer,
+          [innerTabFeature.name]: innerTabFeature.reducer
+        })
+      ]
     })
     .compileComponents();
 
