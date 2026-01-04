@@ -9,10 +9,13 @@ This project demonstrates a sophisticated nested tab system built with **Angular
 - 📦 NgRx state management with request-based pattern
 - 🎨 PrimeNG UI components with new Tabs API
 - 🔧 Extensible launcher system for dynamic tab creation
+- 🎯 Configurable launcher visibility with initial tab support
 
 ## Documentation
 
 📚 **[Creating Launchers and Managing Inner Tabs](docs/CREATING_LAUNCHERS.md)** - Complete guide for creating new launcher components and using the store to manage inner tabs
+
+🎯 **[Hiding Launcher and Using Initial Tabs](docs/HIDING_LAUNCHER_AND_INITIAL_TABS.md)** - Learn how to hide the launcher tab and open specific tabs automatically
 
 ## Quick Start
 
