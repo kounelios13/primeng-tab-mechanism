@@ -6,14 +6,18 @@ This document explains the dynamic tab system architecture using `BaseTabWrapper
 
 The tab system uses a simple architecture where:
 1. Components extend `BaseTabWrapper` to manage inner tabs
-2. Initial tabs are defined in the component
-3. New tabs are opened by dispatching actions through the store
-4. From any inner tab component, you can dispatch actions to open new tabs
+2. All wrapper components share the same template and styles
+3. Initial tabs are defined in the component
+4. New tabs are opened by dispatching actions through the store
+5. From any inner tab component, you can dispatch actions to open new tabs
 
 ## Architecture
 
 ```
 BaseTabWrapper (abstract base component)
+├── base-tab-wrapper.html  (shared template)
+├── base-tab-wrapper.scss  (shared styles)
+│
 ├── TasksComponent extends BaseTabWrapper
 │   ├── TaskDetailComponent (inner tab content)
 │   └── TaskFormComponent (inner tab content)
@@ -27,7 +31,7 @@ BaseTabWrapper (abstract base component)
 
 ## Creating a Tab Wrapper Component
 
-Each parent tab component extends `BaseTabWrapper`:
+Each parent tab component extends `BaseTabWrapper` and uses the shared template:
 
 ```typescript
 import { Component, Type } from '@angular/core';
@@ -43,38 +47,9 @@ import { TaskFormComponent } from './task-form/task-form.component';
   selector: 'app-tasks',
   standalone: true,
   imports: [CommonModule, TabsModule, ButtonModule],
-  template: `
-    <div class="inner-tab-container">
-      @if (innerTabs().length > 0) {
-        <p-tabs 
-          [value]="activeTabId() ?? ''"
-          (valueChange)="onTabValueChange($any($event))">
-          <p-tablist>
-            @for (tab of innerTabs(); track tab.id) {
-              <p-tab [value]="tab.id">
-                @if (tab.icon) { <i [class]="tab.icon"></i> }
-                <span>{{ tab.title }}</span>
-                @if (tab.closable) {
-                  <button (click)="closeTab($event, tab.id)">
-                    <i class="pi pi-times"></i>
-                  </button>
-                }
-              </p-tab>
-            }
-          </p-tablist>
-          <p-tabpanels>
-            @for (tab of innerTabs(); track tab.id) {
-              <p-tabpanel [value]="tab.id">
-                @if (getComponent(tab); as component) {
-                  <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id }"></ng-container>
-                }
-              </p-tabpanel>
-            }
-          </p-tabpanels>
-        </p-tabs>
-      }
-    </div>
-  `
+  // Use shared template and styles - no need to duplicate!
+  templateUrl: '../../shared/base-tab-wrapper.html',
+  styleUrl: '../../shared/base-tab-wrapper.scss'
 })
 export class TasksComponent extends BaseTabWrapper<InnerTabComponentType> {
   // Required: Parent tab ID
@@ -139,6 +114,16 @@ export class TasksComponent extends BaseTabWrapper<InnerTabComponentType> {
   }
 }
 ```
+
+## Shared Template Structure
+
+The shared template (`base-tab-wrapper.html`) handles:
+- Tab list rendering with icons
+- Close buttons for closable tabs
+- Tab panel rendering with dynamic component loading
+- Fallback message for unregistered component types
+
+You don't need to write any template code - just extend `BaseTabWrapper` and define your component registry!
 
 ## Opening Tabs from Inner Tab Components
 
