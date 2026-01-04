@@ -1,4 +1,4 @@
-import { inject, Injector, Signal } from '@angular/core';
+import { inject, Injector, Signal, Type } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { 
@@ -9,31 +9,43 @@ import {
   selectInnerTabs 
 } from '../store';
 import { ParentTabId } from './constants';
+import { ComponentRegistry } from './inner-tab-container/inner-tab-container.component';
 
 /**
- * Abstract base class for tab wrapper/manager utilities.
- * Use this class to manage tabs from services or components that are not UI launchers.
+ * Abstract base class for tab wrapper components.
+ * Extend this class to create a wrapper that manages dynamic tabs without a launcher UI.
  * 
- * This provides the same tab management functionality as BaseTabLauncher,
- * but without requiring a UI component. This enables the "wrapper mode" pattern
- * where tabs are managed and opened from any part of the application via the store.
+ * Each child class:
+ * - Defines its own `parentTabId`
+ * - Provides its own `componentRegistry` mapping component types to component classes
+ * - Can implement custom methods to open specific tab types
  * 
- * Unlike BaseTabLauncher:
+ * This is similar to BaseTabLauncher but:
  * - Does not require a `componentType` property (no launcher tab)
- * - Can be instantiated as a service or used in any component
- * - Works in conjunction with InnerTabContainerComponent using direct componentRegistry
+ * - Includes a `componentRegistry` that can be passed to InnerTabContainerComponent
+ * - Is designed for "wrapper mode" where tabs are managed without a launcher UI
  * 
  * @template TComponentType - The enum type used for component types
  * 
- * @example As a service
+ * @example Creating a wrapper for Projects
  * ```typescript
- * @Injectable({ providedIn: 'root' })
- * export class ProjectTabManagerService extends BaseTabWrapper<InnerTabComponentType> {
+ * export class ProjectTabWrapper extends BaseTabWrapper<InnerTabComponentType> {
  *   protected parentTabId = PARENT_TAB_IDS.PROJECTS;
+ *   
+ *   // Component registry for this wrapper - passed to InnerTabContainerComponent
+ *   override componentRegistry: ComponentRegistry = new Map([
+ *     [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+ *     [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+ *   ]);
  * 
  *   openProjectDetail(projectId: string, projectName: string): void {
+ *     const tabId = `project-detail-${projectId}`;
+ *     if (this.findTabById(tabId)) {
+ *       this.focusExistingTab(tabId);
+ *       return;
+ *     }
  *     this.openInnerTab({
- *       id: `project-detail-${projectId}`,
+ *       id: tabId,
  *       title: projectName,
  *       componentType: InnerTabComponentType.ProjectDetail,
  *       icon: 'pi pi-folder',
@@ -41,21 +53,37 @@ import { ParentTabId } from './constants';
  *       data: { projectId, projectName }
  *     });
  *   }
+ * 
+ *   openProjectSettings(): void {
+ *     this.openInnerTab({
+ *       id: 'project-settings',
+ *       title: 'Project Settings',
+ *       componentType: InnerTabComponentType.ProjectSettings,
+ *       icon: 'pi pi-cog',
+ *       closable: true,
+ *       singleton: true
+ *     });
+ *   }
  * }
  * ```
  * 
- * @example In a component
+ * @example Using in a component
  * ```typescript
- * export class MyComponent {
- *   private tabManager: ProjectTabManager;
- *   
- *   constructor() {
- *     this.tabManager = new ProjectTabManager();
- *   }
- *   
- *   openProject(project: Project): void {
- *     this.tabManager.openProjectDetail(project.id, project.name);
- *   }
+ * @Component({
+ *   template: `
+ *     <app-inner-tab-container
+ *       [parentTabId]="wrapper.parentTabId"
+ *       [componentRegistry]="wrapper.componentRegistry"
+ *       [showLauncher]="false"
+ *       [initialTabs]="initialTabs">
+ *     </app-inner-tab-container>
+ *     
+ *     <button (click)="wrapper.openProjectDetail('1', 'My Project')">Open Project</button>
+ *   `
+ * })
+ * export class ProjectsComponent {
+ *   wrapper = new ProjectTabWrapper();
+ *   initialTabs = [...];
  * }
  * ```
  */
@@ -64,7 +92,22 @@ export abstract class BaseTabWrapper<TComponentType extends string | number | un
    * The ID of the parent tab this wrapper manages.
    * Must be set by the extending class using PARENT_TAB_IDS constants.
    */
-  protected abstract parentTabId: ParentTabId;
+  abstract readonly parentTabId: ParentTabId;
+
+  /**
+   * Component registry mapping component types to component classes.
+   * Each child class should initialize this with their specific components.
+   * This registry is passed to InnerTabContainerComponent for dynamic tab loading.
+   * 
+   * @example
+   * ```typescript
+   * componentRegistry: ComponentRegistry = new Map([
+   *   [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+   *   [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+   * ]);
+   * ```
+   */
+  abstract readonly componentRegistry: ComponentRegistry;
 
   /**
    * NgRx Store instance, injected automatically.
@@ -114,7 +157,7 @@ export abstract class BaseTabWrapper<TComponentType extends string | number | un
     }
 
     // Check custom validation
-    if (!this.canOpenTab(config.componentType as TComponentType, config as any)) {
+    if (!this.canOpenTab(config.componentType as TComponentType, config)) {
       return false;
     }
 

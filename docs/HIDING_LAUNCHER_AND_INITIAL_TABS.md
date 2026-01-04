@@ -23,40 +23,86 @@ By default, the `InnerTabContainerComponent` creates a launcher tab as the first
 
 ### Option 1: Wrapper Mode (No Launcher Component) - NEW
 
-The simplest approach when you don't need a launcher UI. Provide a `componentRegistry` directly:
+The recommended approach is to create a wrapper class that extends `BaseTabWrapper`. This provides:
+- A component registry for dynamic tab loading
+- Methods to open specific tab types
+- Tab management utilities (find, close, focus tabs)
 
 ```typescript
-import { Component, Type } from '@angular/core';
-import { InnerTabContainerComponent, PARENT_TAB_IDS, ComponentRegistry } from '../../shared';
-import { InnerTabComponentType, InnerTabItem } from '../../store';
+// Step 1: Create a wrapper class
+// src/app/components/projects/project-tab-wrapper.ts
+
+import { Type } from '@angular/core';
+import { BaseTabWrapper, PARENT_TAB_IDS, ComponentRegistry } from '../../shared';
+import { InnerTabComponentType } from '../../store';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
 import { ProjectSettingsComponent } from './project-settings/project-settings.component';
 
+export class ProjectTabWrapper extends BaseTabWrapper<InnerTabComponentType> {
+  readonly parentTabId = PARENT_TAB_IDS.PROJECTS;
+
+  readonly componentRegistry: ComponentRegistry = new Map([
+    [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
+    [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
+  ]);
+
+  openProjectDetail(projectId: string, projectName: string): void {
+    const tabId = `project-detail-${projectId}`;
+    if (this.findTabById(tabId)) {
+      this.focusExistingTab(tabId);
+      return;
+    }
+    this.openInnerTab({
+      id: tabId,
+      title: projectName,
+      componentType: InnerTabComponentType.ProjectDetail,
+      icon: 'pi pi-folder',
+      closable: true,
+      data: { projectId, projectName }
+    });
+  }
+
+  openProjectSettings(): void {
+    this.openInnerTab({
+      id: 'project-settings',
+      title: 'Project Settings',
+      componentType: InnerTabComponentType.ProjectSettings,
+      icon: 'pi pi-cog',
+      closable: true,
+      singleton: true
+    });
+  }
+}
+```
+
+```typescript
+// Step 2: Use the wrapper in your component
+// src/app/components/projects/projects.component.ts
+
+import { Component } from '@angular/core';
+import { InnerTabContainerComponent, PARENT_TAB_IDS } from '../../shared';
+import { InnerTabComponentType, InnerTabItem } from '../../store';
+import { ProjectTabWrapper } from './project-tab-wrapper';
+
 @Component({
-  selector: 'app-my-feature',
+  selector: 'app-projects',
   imports: [InnerTabContainerComponent],
   template: `
     <app-inner-tab-container
-      [parentTabId]="PARENT_TAB_IDS.MYFEATURE"
-      [componentRegistry]="componentRegistry"
+      [parentTabId]="wrapper.parentTabId"
+      [componentRegistry]="wrapper.componentRegistry"
       [showLauncher]="false"
       [initialTabs]="initialTabs">
     </app-inner-tab-container>
   `
 })
-export class MyFeatureComponent {
-  readonly PARENT_TAB_IDS = PARENT_TAB_IDS;
-  
-  // Component registry maps component types to component classes
-  readonly componentRegistry: ComponentRegistry = new Map<InnerTabComponentType, Type<unknown>>([
-    [InnerTabComponentType.ProjectDetail, ProjectDetailComponent],
-    [InnerTabComponentType.ProjectSettings, ProjectSettingsComponent]
-  ]);
+export class ProjectsComponent {
+  readonly wrapper = new ProjectTabWrapper();
   
   readonly initialTabs: InnerTabItem[] = [
     {
       id: 'project-1',
-      parentTabId: PARENT_TAB_IDS.MYFEATURE,
+      parentTabId: PARENT_TAB_IDS.PROJECTS,
       title: 'Project One',
       componentType: InnerTabComponentType.ProjectDetail,
       icon: 'pi pi-folder',
@@ -68,9 +114,10 @@ export class MyFeatureComponent {
 ```
 
 **Benefits of Wrapper Mode:**
-- No need to create a launcher component class
-- Simpler setup for dynamic tab interfaces
-- Tabs can still be opened dynamically via the store from any part of the application
+- Clean separation of tab management logic into wrapper class
+- Each wrapper class has its own component registry
+- Methods to open specific tab types with proper validation
+- Tabs can still be opened dynamically via wrapper methods from any part of the application
 
 ### Option 2: Hide Launcher Only
 

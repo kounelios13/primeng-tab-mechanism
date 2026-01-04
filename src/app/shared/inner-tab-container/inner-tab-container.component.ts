@@ -165,7 +165,7 @@ export class InnerTabContainerComponent implements OnInit {
   ngOnInit(): void {
     // Validate configuration - either launcherComponent or componentRegistry must be provided
     if (!this.launcherComponent && !this.componentRegistry) {
-      console.error('InnerTabContainerComponent: Either launcherComponent or componentRegistry must be provided.');
+      throw new Error('InnerTabContainerComponent: Either launcherComponent or componentRegistry must be provided.');
     }
 
     // If no launcher component is provided, automatically disable showLauncher
@@ -263,9 +263,9 @@ export class InnerTabContainerComponent implements OnInit {
    * and any initial tabs.
    */
   private initializeContext(): void {
-    // Only show warning if launcher is expected but not available
+    // Throw error if launcher is expected but not available
     if (this.showLauncher && !this.launcherInstance?.componentType) {
-      console.error('Launcher instance or componentType not found. Ensure launcher extends BaseTabLauncher and sets componentType.');
+      throw new Error('Launcher instance or componentType not found. Ensure launcher extends BaseTabLauncher and sets componentType.');
     }
 
     // Create launcher tab or null if showLauncher is false or no launcher provided
