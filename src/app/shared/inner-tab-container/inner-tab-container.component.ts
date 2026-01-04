@@ -24,13 +24,34 @@ import { BaseTabLauncher } from '../base-tab-launcher';
  * Listens for pending tab requests via selector and dispatches add actions.
  * The launcher component type is automatically derived from the launcher instance.
  * 
- * @example
+ * @example Basic usage with launcher
  * ```html
  * <app-inner-tab-container
  *   [parentTabId]="PARENT_TAB_IDS.TASKS"
  *   [launcherComponent]="TaskLauncherComponent"
  *   [launcherTitle]="'Task Home'"
  *   [launcherIcon]="'pi pi-home'">
+ * </app-inner-tab-container>
+ * ```
+ * 
+ * @example Without launcher, with initial tabs
+ * ```html
+ * <app-inner-tab-container
+ *   [parentTabId]="PARENT_TAB_IDS.PROJECTS"
+ *   [launcherComponent]="ProjectLauncherComponent"
+ *   [showLauncher]="false"
+ *   [initialTabs]="initialProjectTabs">
+ * </app-inner-tab-container>
+ * ```
+ * 
+ * @example With both launcher and initial tabs
+ * ```html
+ * <app-inner-tab-container
+ *   [parentTabId]="PARENT_TAB_IDS.OVERVIEW"
+ *   [launcherComponent]="OverviewLauncherComponent"
+ *   [launcherTitle]="'Dashboard'"
+ *   [showLauncher]="true"
+ *   [initialTabs]="initialCharts">
  * </app-inner-tab-container>
  * ```
  */
@@ -64,6 +85,20 @@ export class InnerTabContainerComponent implements OnInit {
    * Icon for the launcher tab.
    */
   @Input() launcherIcon: string = 'pi pi-home';
+
+  /**
+   * Whether to show the launcher as a tab.
+   * If false, the launcher will not be added as a tab.
+   * Default: true
+   */
+  @Input() showLauncher: boolean = true;
+
+  /**
+   * Initial tabs to open when the container is initialized.
+   * These tabs will be opened automatically after initialization.
+   * Note: The launcher component must be provided to register the components.
+   */
+  @Input() initialTabs: InnerTabItem[] = [];
 
   /**
    * Reference to the launcher component instance for accessing its registry.
@@ -183,7 +218,8 @@ export class InnerTabContainerComponent implements OnInit {
   }
 
   /**
-   * Initializes the inner tab context with the launcher tab.
+   * Initializes the inner tab context with the launcher tab (if showLauncher is true)
+   * and any initial tabs.
    */
   private initializeContext(): void {
     // Ensure launcher instance is available
@@ -191,19 +227,34 @@ export class InnerTabContainerComponent implements OnInit {
       console.error('Launcher instance or componentType not found. Ensure launcher extends BaseTabLauncher and sets componentType.');
     }
 
-    const launcherTab: InnerTabItem = {
+    // Create launcher tab or null if showLauncher is false
+    const launcherTab: InnerTabItem | null = this.showLauncher ? {
       id: `${this.parentTabId}-launcher`,
       parentTabId: this.parentTabId,
       title: this.launcherTitle,
       componentType: this.launcherInstance?.componentType ?? InnerTabComponentType.GenericLauncher,
       icon: this.launcherIcon,
       closable: false
-    };
+    } : null;
 
+    // Dispatch init context with launcher (or null)
     this.store.dispatch(InnerTabActions.initContext({
       parentTabId: this.parentTabId,
       launcherTab
     }));
+
+    // If there are initial tabs, add them after initialization
+    if (this.initialTabs.length > 0) {
+      this.initialTabs.forEach(tab => {
+        this.store.dispatch(InnerTabActions.addInnerTab({
+          parentTabId: this.parentTabId,
+          tab: {
+            ...tab,
+            parentTabId: this.parentTabId
+          }
+        }));
+      });
+    }
   }
 
   /**

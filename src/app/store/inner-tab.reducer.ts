@@ -48,14 +48,14 @@ const getContext = (state: InnerTabState, parentTabId: string): InnerTabContextS
 const innerTabReducer = createReducer(
   initialInnerTabState,
 
-  // Initialize a new context with a launcher tab
+  // Initialize a new context with a launcher tab (or empty if launcher is null)
   on(InnerTabActions.initContext, (state, { parentTabId, launcherTab }) => ({
     ...state,
     contexts: {
       ...state.contexts,
       [parentTabId]: {
-        innerTabs: [launcherTab],
-        activeInnerTabId: launcherTab.id
+        innerTabs: launcherTab ? [launcherTab] : [],
+        activeInnerTabId: launcherTab ? launcherTab.id : null
       }
     }
   })),
