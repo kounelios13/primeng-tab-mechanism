@@ -247,4 +247,4 @@ After making these changes, verify:
 
 ## Questions?
 
-See the updated [CREATING_LAUNCHERS.md](docs/CREATING_LAUNCHERS.md) guide for complete examples using the new simplified architecture.
+See the [DYNAMIC_TABS.md](docs/DYNAMIC_TABS.md) guide for complete examples using the tab wrapper architecture.

@@ -3,27 +3,42 @@ import { InnerTabActions, InnerTabItem } from './inner-tab.actions';
 
 /**
  * Represents a pending request to add a tab.
+ * 
+ * Pending requests are stored in the state and processed by BaseTabWrapper.
+ * The timestamp is used to generate unique identifiers for deduplication.
  */
 export interface TabRequest {
+  /** The parent tab context where the new tab should be added */
   parentTabId: string;
+  /** The complete tab configuration to add */
   tab: InnerTabItem;
+  /** Timestamp when the request was created (for deduplication) */
   timestamp: number;
 }
 
 /**
  * State for inner tabs within a single parent tab context.
+ * 
+ * Each parent tab has its own context containing its inner tabs
+ * and the currently active inner tab.
  */
 export interface InnerTabContextState {
+  /** Array of inner tabs in this context */
   innerTabs: InnerTabItem[];
+  /** ID of the currently active inner tab, or null if none */
   activeInnerTabId: string | null;
 }
 
 /**
  * Root state for all inner tab contexts.
- * Each parent tab ID maps to its own inner tab state.
+ * 
+ * The state is organized as a map of parent tab IDs to their contexts,
+ * plus a list of pending tab requests waiting to be processed.
  */
 export interface InnerTabState {
+  /** Map of parent tab IDs to their inner tab contexts */
   contexts: Record<string, InnerTabContextState>;
+  /** Queue of pending tab addition requests */
   pendingRequests: TabRequest[];
 }
 
