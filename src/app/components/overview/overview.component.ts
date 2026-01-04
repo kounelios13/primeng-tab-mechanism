@@ -51,7 +51,7 @@ import { OverviewReportComponent } from './overview-report/overview-report.compo
               <p-tabpanel [value]="tab.id">
                 <div class="inner-tab-content">
                   @if (getComponent(tab); as component) {
-                    <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id, parentTabId: parentTabId }"></ng-container>
+                    <ng-container *ngComponentOutlet="component; inputs: { tabData: tab.data, tabId: tab.id }"></ng-container>
                   } @else {
                     <div class="no-component-warning">
                       <i class="pi pi-exclamation-triangle"></i>
