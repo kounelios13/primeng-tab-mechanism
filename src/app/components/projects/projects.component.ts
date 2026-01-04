@@ -36,11 +36,12 @@ export class ProjectsComponent {
   /**
    * Initial tabs to open when the Projects tab is activated.
    * These tabs will be opened automatically.
+   * Note: parentTabId is set automatically by the container, but included here for type compliance.
    */
   readonly initialTabs: InnerTabItem[] = [
     {
       id: 'project-detail-1',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      parentTabId: PARENT_TAB_IDS.PROJECTS,  // Will be set by container
       title: 'Website Redesign',
       componentType: InnerTabComponentType.ProjectDetail,
       icon: 'pi pi-folder',
@@ -49,7 +50,7 @@ export class ProjectsComponent {
     },
     {
       id: 'project-detail-2',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      parentTabId: PARENT_TAB_IDS.PROJECTS,  // Will be set by container
       title: 'Mobile App Development',
       componentType: InnerTabComponentType.ProjectDetail,
       icon: 'pi pi-folder',
@@ -58,7 +59,7 @@ export class ProjectsComponent {
     },
     {
       id: 'project-settings',
-      parentTabId: PARENT_TAB_IDS.PROJECTS,
+      parentTabId: PARENT_TAB_IDS.PROJECTS,  // Will be set by container
       title: 'Project Settings',
       componentType: InnerTabComponentType.ProjectSettings,
       icon: 'pi pi-cog',

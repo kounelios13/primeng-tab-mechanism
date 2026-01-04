@@ -250,6 +250,8 @@ export class InnerTabContainerComponent implements OnInit {
           parentTabId: this.parentTabId,
           tab: {
             ...tab,
+            // Override parentTabId to ensure it matches the container's parentTabId
+            // This guards against mismatches and ensures type compliance with InnerTabItem
             parentTabId: this.parentTabId
           }
         }));
