@@ -1,8 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
+import { Store } from '@ngrx/store';
+import { InnerTabActions, InnerTabComponentType } from '../../../store';
+import { PARENT_TAB_IDS } from '../../../shared';
 
 /**
  * Component to display task details in an inner tab.
@@ -24,6 +27,8 @@ export class TaskDetailComponent implements OnInit {
    * The ID of this inner tab.
    */
   @Input() tabId?: string;
+
+  private store = inject(Store);
 
   // Task properties derived from tabData
   taskId: string = '';
@@ -49,5 +54,32 @@ export class TaskDetailComponent implements OnInit {
       this.taskId = this.tabData['taskId'] as string || '';
       this.taskTitle = this.tabData['taskTitle'] as string || 'Task Details';
     }
+  }
+
+  /**
+   * Opens the edit form for this task.
+   * Dispatches an action to open a new TaskForm tab.
+   */
+  openEditForm(): void {
+    this.store.dispatch(InnerTabActions.requestAddInnerTab({
+      parentTabId: PARENT_TAB_IDS.TASKS,
+      tab: {
+        id: `task-edit-${this.taskId}`,
+        parentTabId: PARENT_TAB_IDS.TASKS,
+        title: `Edit: ${this.taskTitle}`,
+        componentType: InnerTabComponentType.TaskForm,
+        icon: 'pi pi-pencil',
+        closable: true,
+        data: { mode: 'edit', taskId: this.taskId, taskTitle: this.taskTitle }
+      }
+    }));
+  }
+
+  /**
+   * Marks the task as complete.
+   */
+  markComplete(): void {
+    // For demo purposes, just update the status
+    this.taskDetails.status = 'Completed';
   }
 }

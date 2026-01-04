@@ -6,22 +6,18 @@ import { createActionGroup, emptyProps, props } from '@ngrx/store';
  */
 export enum InnerTabComponentType {
   // Task-related inner tabs
-  TaskLauncher = 'task-launcher',
   TaskDetail = 'task-detail',
   TaskForm = 'task-form',
   
   // Overview-related inner tabs
-  OverviewLauncher = 'overview-launcher',
   OverviewChart = 'overview-chart',
   OverviewReport = 'overview-report',
   
   // Projects-related inner tabs
-  ProjectLauncher = 'project-launcher',
   ProjectDetail = 'project-detail',
   ProjectSettings = 'project-settings',
   
   // Generic/shared inner tabs
-  GenericLauncher = 'generic-launcher',
   Settings = 'settings'
 }
 
@@ -53,8 +49,8 @@ export type InnerTabConfig = Omit<InnerTabItem, 'parentTabId'>;
 export const InnerTabActions = createActionGroup({
   source: 'InnerTab',
   events: {
-    // Initialize a context for a parent tab with its launcher tab (can be null to skip launcher)
-    'Init Context': props<{ parentTabId: string; launcherTab: InnerTabItem | null }>(),
+    // Initialize a context for a parent tab
+    'Init Context': props<{ parentTabId: string }>(),
     
     // Request to add a new inner tab (forwarded to parent component)
     'Request Add Inner Tab': props<{ parentTabId: string; tab: InnerTabItem }>(),
