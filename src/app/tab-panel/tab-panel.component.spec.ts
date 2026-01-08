@@ -27,4 +27,16 @@ describe('TabPanelComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should have showLabels signal initialized to true', () => {
+    expect(component.showLabels()).toBe(true);
+  });
+
+  it('should toggle showLabels when toggleLabels is called', () => {
+    expect(component.showLabels()).toBe(true);
+    component.toggleLabels();
+    expect(component.showLabels()).toBe(false);
+    component.toggleLabels();
+    expect(component.showLabels()).toBe(true);
+  });
 });

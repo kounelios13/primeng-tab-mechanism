@@ -4,7 +4,16 @@
   
   // CSS Variables for vertical menu styling
   --vertical-menu-width: 250px;
+  --vertical-menu-collapsed-width: 60px;
   --active-border-width: 4px;
+  
+  // Sidebar header with toggle button
+  .sidebar-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--p-surface-border);
+  }
   
   // Menu-style vertical tabs - ONLY for direct child tabs, not nested
   ::ng-deep {
@@ -23,6 +32,7 @@
         border-right: 1px solid var(--p-surface-border);
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
         flex-shrink: 0;
+        transition: width 0.3s ease, min-width 0.3s ease;
         
         .p-tablist-content {
           height: 100%;
@@ -75,6 +85,36 @@
         overflow-y: auto;
         overflow-x: hidden;
       }
+    }
+  }
+  
+  // Collapsed state when labels are hidden
+  &.labels-hidden {
+    ::ng-deep {
+      > .p-tabs {
+        > .p-tablist {
+          width: var(--vertical-menu-collapsed-width);
+          min-width: var(--vertical-menu-collapsed-width);
+          
+          .p-tab {
+            justify-content: center;
+            padding: 0.75rem;
+            margin: 0 0.25rem;
+            
+            i {
+              margin-right: 0;
+            }
+            
+            &[data-p-active="true"] {
+              padding-left: max(0px, calc(0.75rem - var(--active-border-width)));
+            }
+          }
+        }
+      }
+    }
+    
+    .sidebar-header {
+      justify-content: center;
     }
   }
 }

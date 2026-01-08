@@ -1,16 +1,30 @@
-<div class="tab-panel-container">
+<div class="tab-panel-container" [class.labels-hidden]="!showLabels()">
   <p-tabs 
     [value]="activeTabId() ?? ''"
     (valueChange)="onTabValueChange($any($event))"
     styleClass="custom-tabview">
     
     <p-tablist>
+      <div class="sidebar-header">
+        <p-button 
+          [icon]="showLabels() ? 'pi pi-chevron-left' : 'pi pi-chevron-right'"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          (onClick)="toggleLabels()"
+          [pTooltip]="showLabels() ? 'Hide labels' : 'Show labels'"
+          tooltipPosition="right"
+          ariaLabel="Toggle sidebar labels">
+        </p-button>
+      </div>
       @for (tab of tabs(); track tab.id) {
         <p-tab [value]="tab.id" [disabled]="tab.disabled ?? false">
           @if (tab.icon) {
             <i [class]="tab.icon"></i>
           }
-          <span>{{ tab.title }}</span>
+          @if (showLabels()) {
+            <span>{{ tab.title }}</span>
+          }
         </p-tab>
       }
     </p-tablist>
