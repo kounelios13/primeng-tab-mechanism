@@ -6,6 +6,9 @@
 }
 
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   background: var(--p-primary-color, var(--p-primary-500, #10b981));
   color: var(--p-primary-contrast-color, #ffffff);
   text-align: center;
