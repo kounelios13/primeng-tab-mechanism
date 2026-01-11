@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideStore } from '@ngrx/store';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { tabFeature, innerTabFeature } from './store';
 
@@ -8,6 +9,7 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
+        provideNoopAnimations(),
         provideStore({
           [tabFeature.name]: tabFeature.reducer,
           [innerTabFeature.name]: innerTabFeature.reducer

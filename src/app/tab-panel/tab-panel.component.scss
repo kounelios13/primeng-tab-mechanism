@@ -22,6 +22,32 @@
   }
 
   // -------------------------------------------------------------------------
+  // Sidebar Wrapper - Animated container for the sidebar
+  // Animation handled by Angular Animations (@sidebarState trigger)
+  // -------------------------------------------------------------------------
+  .sidebar-wrapper {
+    flex-shrink: 0;
+    background: var(--p-surface-0);
+    border-right: 1px solid var(--p-surface-border);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+
+    // p-tablist inside wrapper should fill available space
+    ::ng-deep .p-tablist {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Tab Label - Animated visibility via Angular Animations
+  // -------------------------------------------------------------------------
+  .tab-label {
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  // -------------------------------------------------------------------------
   // Vertical Tabs Layout
   // Uses ::ng-deep with child combinator to target only direct child tabs
   // -------------------------------------------------------------------------
@@ -31,53 +57,43 @@
     height: 100%;
     width: 100%;
 
-    // Sidebar container
-    > .p-tablist {
-      width: var(--sidebar-width);
-      min-width: var(--sidebar-width);
-      flex-shrink: 0;
-      background: var(--p-surface-0);
-      border-right: 1px solid var(--p-surface-border);
-      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-      transition: width 0.3s ease, min-width 0.3s ease;
+    // Vertical tab list layout inside the wrapper
+    .p-tablist-tab-list {
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 1rem 0;
+      gap: 0.25rem;
+    }
 
-      // Vertical tab list layout
-      .p-tablist-tab-list {
-        display: flex !important;
-        flex-direction: column !important;
-        padding: 1rem 0;
-        gap: 0.25rem;
+    // Hide default horizontal active indicator
+    .p-tablist-active-bar {
+      display: none !important;
+    }
+
+    // Individual tab styling
+    .p-tab {
+      justify-content: flex-start;
+      padding: 0.75rem 1.5rem;
+      margin: 0 0.5rem;
+      border: none;
+      transition: background 0.2s, color 0.2s;
+
+      &:hover {
+        background: var(--p-primary-50);
       }
 
-      // Hide default horizontal active indicator
-      .p-tablist-active-bar {
-        display: none !important;
+      // Active tab with left border indicator
+      &[data-p-active="true"] {
+        background: var(--p-primary-100);
+        color: var(--p-primary-700);
+        font-weight: 600;
+        border-left: var(--active-indicator-width) solid var(--p-primary-500);
+        padding-left: calc(1.5rem - var(--active-indicator-width));
       }
 
-      // Individual tab styling
-      .p-tab {
-        justify-content: flex-start;
-        padding: 0.75rem 1.5rem;
-        margin: 0 0.5rem;
-        border: none;
-        transition: all 0.2s;
-
-        &:hover {
-          background: var(--p-primary-50);
-        }
-
-        // Active tab with left border indicator
-        &[data-p-active="true"] {
-          background: var(--p-primary-100);
-          color: var(--p-primary-700);
-          font-weight: 600;
-          border-left: var(--active-indicator-width) solid var(--p-primary-500);
-          padding-left: calc(1.5rem - var(--active-indicator-width));
-        }
-
-        i {
-          margin-right: 0.75rem;
-        }
+      i {
+        margin-right: 0.75rem;
+        flex-shrink: 0;
       }
     }
 
@@ -96,22 +112,17 @@
       justify-content: center;
     }
 
-    ::ng-deep > .p-tabs > .p-tablist {
-      width: var(--sidebar-collapsed-width);
-      min-width: var(--sidebar-collapsed-width);
+    ::ng-deep > .p-tabs .p-tab {
+      justify-content: center;
+      padding: 0.75rem;
+      margin: 0 0.25rem;
 
-      .p-tab {
-        justify-content: center;
-        padding: 0.75rem;
-        margin: 0 0.25rem;
+      i {
+        margin-right: 0;
+      }
 
-        i {
-          margin-right: 0;
-        }
-
-        &[data-p-active="true"] {
-          padding-left: calc(0.75rem - var(--active-indicator-width));
-        }
+      &[data-p-active="true"] {
+        padding-left: calc(0.75rem - var(--active-indicator-width));
       }
     }
   }

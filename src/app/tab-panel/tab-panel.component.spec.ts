@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideStore } from '@ngrx/store';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TabPanelComponent } from './tab-panel.component';
 import { tabFeature, innerTabFeature } from '../store';
 
@@ -11,6 +12,7 @@ describe('TabPanelComponent', () => {
     await TestBed.configureTestingModule({
       imports: [TabPanelComponent],
       providers: [
+        provideNoopAnimations(),
         provideStore({
           [tabFeature.name]: tabFeature.reducer,
           [innerTabFeature.name]: innerTabFeature.reducer
