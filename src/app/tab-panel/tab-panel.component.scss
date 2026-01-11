@@ -31,7 +31,7 @@
     height: 100%;
     width: 100%;
 
-    // Sidebar container
+    // Sidebar container - fixed position, does not scroll with content
     > .p-tablist {
       width: var(--sidebar-width);
       min-width: var(--sidebar-width);
@@ -40,10 +40,6 @@
       border-right: 1px solid var(--p-surface-border);
       box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
       transition: width 0.3s ease, min-width 0.3s ease;
-      position: sticky;
-      top: 0;
-      align-self: flex-start;
-      height: 100%;
       overflow-y: auto;
 
       // Vertical tab list layout
