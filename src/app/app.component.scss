@@ -1,13 +1,13 @@
 .app-container {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--p-surface-ground, var(--p-surface-0, #f8fafc));
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .app-header {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 1000;
   background: var(--p-primary-color, var(--p-primary-500, #10b981));
   color: var(--p-primary-contrast-color, #ffffff);
