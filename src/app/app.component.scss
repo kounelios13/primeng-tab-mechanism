@@ -1,13 +1,13 @@
 .app-container {
   min-height: 100vh;
-  background: var(--surface-ground);
+  background: var(--p-surface-ground, var(--p-surface-0, #f8fafc));
   display: flex;
   flex-direction: column;
 }
 
 .app-header {
-  background: var(--primary-color);
-  color: white;
+  background: var(--p-primary-color, var(--p-primary-500, #10b981));
+  color: var(--p-primary-contrast-color, #ffffff);
   text-align: center;
   padding: 2rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
