@@ -23,9 +23,11 @@
             @if (tab.icon) {
               <i [class]="tab.icon"></i>
             }
-            <span class="tab-label" [@labelVisibility]="labelAnimationState()">
-              {{ tab.title }}
-            </span>
+            @if (tab.title) {
+              <span class="tab-label" [@labelVisibility]="labelAnimationState()">
+                {{ tab.title }}
+              </span>
+            }
           </p-tab>
         }
       </p-tablist>

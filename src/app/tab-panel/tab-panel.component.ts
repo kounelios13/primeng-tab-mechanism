@@ -36,6 +36,8 @@ import { PARENT_TAB_IDS } from '../shared';
         animate('300ms cubic-bezier(0.4, 0, 0.2, 1)')
       ])
     ]),
+    // Label visibility animation - fades and slides labels in/out
+    // Uses '*' wildcard for width to animate to the element's natural computed width
     trigger('labelVisibility', [
       state('visible', style({
         opacity: 1,
