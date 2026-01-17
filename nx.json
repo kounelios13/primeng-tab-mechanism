@@ -23,7 +23,13 @@
     }
   },
   "namedInputs": {
-    "sharedGlobals": [],
+    "sharedGlobals": [
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/package-lock.json",
+      "{workspaceRoot}/angular.json",
+      "{workspaceRoot}/tsconfig.json",
+      "{workspaceRoot}/nx.json"
+    ],
     "default": [
       "{projectRoot}/**/*",
       "sharedGlobals"
