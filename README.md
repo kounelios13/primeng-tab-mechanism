@@ -20,6 +20,14 @@ This project demonstrates a sophisticated nested tab system built with **Angular
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.19.
 
+## Nx support
+
+This workspace includes Nx tooling. You can run Nx commands with:
+
+```bash
+npm run nx -- graph
+```
+
 ## Development server
 
 To start a local development server, run:
