@@ -209,6 +209,84 @@ export class TaskDetailComponent {
 }
 ```
 
+## Cross-Parent Navigation Pattern (Jump from one main tab to another + specific inner tab)
+
+If you want to navigate from one area (for example `Tasks`) to a specific inner tab in another area (for example `Overview -> Reports`), use a **two-step dispatch pattern**.
+
+### Why this works well
+
+1. The main tab and inner tabs stay decoupled.
+2. Any component can trigger cross-navigation (buttons, links, table rows, notifications).
+3. It is idempotent when you reuse deterministic tab IDs.
+
+### Step 1: Activate the target parent (main) tab
+
+Dispatch the main tab action first:
+
+```typescript
+this.store.dispatch(TabActions.setActiveTab({ id: PARENT_TAB_IDS.OVERVIEW }));
+```
+
+### Step 2: Open/focus the target inner tab in that parent
+
+Immediately dispatch an inner-tab request for the same parent context:
+
+```typescript
+this.store.dispatch(InnerTabActions.requestAddInnerTab({
+  parentTabId: PARENT_TAB_IDS.OVERVIEW,
+  tab: {
+    id: `overview-report-${reportId}`,
+    parentTabId: PARENT_TAB_IDS.OVERVIEW,
+    title: `Report ${reportName}`,
+    componentType: InnerTabComponentType.OverviewReport,
+    icon: 'pi pi-chart-line',
+    closable: true,
+    data: { reportId, reportName }
+  }
+}));
+```
+
+Because wrappers already process `requestAddInnerTab`, this will create (or focus, if you handle duplicates) the exact inner tab after the parent is active.
+
+### Recommended implementation shape: Navigation Facade
+
+Create a small facade/service to keep this behavior consistent everywhere:
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class TabNavigationFacade {
+  private readonly store = inject(Store);
+
+  openOverviewReport(reportId: string, reportName: string): void {
+    this.store.dispatch(TabActions.setActiveTab({ id: PARENT_TAB_IDS.OVERVIEW }));
+    this.store.dispatch(InnerTabActions.requestAddInnerTab({
+      parentTabId: PARENT_TAB_IDS.OVERVIEW,
+      tab: {
+        id: `overview-report-${reportId}`,
+        parentTabId: PARENT_TAB_IDS.OVERVIEW,
+        title: `Report ${reportName}`,
+        componentType: InnerTabComponentType.OverviewReport,
+        icon: 'pi pi-chart-line',
+        closable: true,
+        data: { reportId, reportName }
+      }
+    }));
+  }
+}
+```
+
+Then from any component:
+
+```typescript
+this.tabNavigation.openOverviewReport('42', 'Quarterly KPI');
+```
+
+### Design tips
+
+- Use stable IDs (`overview-report-${reportId}`) so repeated clicks focus existing tabs rather than creating duplicates.
+- Keep parent IDs and component types in shared constants/enums (already done in this project).
+- Prefer facade methods over scattered inline dispatches to keep navigation rules centralized.
+
 ## Available Store Actions
 
 ```typescript
