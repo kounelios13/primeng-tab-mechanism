@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
-import { ParentTabId } from '../../../shared';
+import { IInnerTabComponent } from '../../../shared';
 
 /**
  * Project detail component showing project information.
  * This is an inner tab component that receives data via @Input() tabData.
+ *
+ * Implements {@link IInnerTabComponent} to declare the standard inner-tab inputs.
  */
 @Component({
   selector: 'app-project-detail',
@@ -15,21 +17,15 @@ import { ParentTabId } from '../../../shared';
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
 })
-export class ProjectDetailComponent implements OnInit {
-  /**
-   * Data passed from the inner tab system via ngComponentOutlet.
-   */
+export class ProjectDetailComponent implements OnInit, IInnerTabComponent {
+  /** Data passed from the inner tab system via ngComponentOutlet. */
   @Input() tabData?: Record<string, unknown>;
 
-  /**
-   * The ID of this inner tab.
-   */
+  /** The ID of this inner tab instance. */
   @Input() tabId?: string;
 
-  /**
-   * The parent tab ID (optional, for context).
-   */
-  @Input() parentTabId?: ParentTabId;
+  /** The parent tab context ID, passed automatically by BaseTabWrapper. */
+  @Input() parentTabId?: string;
 
   // Extracted from tabData
   projectId: string = '';

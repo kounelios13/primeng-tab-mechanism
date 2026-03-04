@@ -14,7 +14,9 @@ This project demonstrates a sophisticated nested tab system built with **Angular
 
 ## Documentation
 
-📚 **[Dynamic Tab System](docs/DYNAMIC_TABS.md)** - Complete guide for creating tab wrapper components and managing inner tabs using the store
+📚 **[Architecture & Design Decisions](docs/ARCHITECTURE.md)** — Comprehensive guide covering design patterns, refactoring decisions, data flow, and how to add new features.
+
+📚 **[Dynamic Tab System](docs/DYNAMIC_TABS.md)** - Step-by-step guide for creating tab wrapper components and managing inner tabs using the store
 
 ## Quick Start
 

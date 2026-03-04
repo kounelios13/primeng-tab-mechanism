@@ -5,11 +5,13 @@ import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputSwitchModule } from 'primeng/inputswitch';
-import { ParentTabId } from '../../../shared';
+import { IInnerTabComponent } from '../../../shared';
 
 /**
  * Project settings component for configuring project preferences.
  * This is an inner tab component that receives data via @Input() tabData.
+ *
+ * Implements {@link IInnerTabComponent} to declare the standard inner-tab inputs.
  */
 @Component({
   selector: 'app-project-settings',
@@ -17,21 +19,15 @@ import { ParentTabId } from '../../../shared';
   templateUrl: './project-settings.component.html',
   styleUrl: './project-settings.component.scss',
 })
-export class ProjectSettingsComponent implements OnInit {
-  /**
-   * Data passed from the inner tab system via ngComponentOutlet.
-   */
+export class ProjectSettingsComponent implements OnInit, IInnerTabComponent {
+  /** Data passed from the inner tab system via ngComponentOutlet. */
   @Input() tabData?: Record<string, unknown>;
 
-  /**
-   * The ID of this inner tab.
-   */
+  /** The ID of this inner tab instance. */
   @Input() tabId?: string;
 
-  /**
-   * The parent tab ID (optional, for context).
-   */
-  @Input() parentTabId?: ParentTabId;
+  /** The parent tab context ID, passed automatically by BaseTabWrapper. */
+  @Input() parentTabId?: string;
 
   // Settings data
   settings = {
