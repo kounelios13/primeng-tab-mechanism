@@ -3,9 +3,12 @@ import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
+import { IInnerTabComponent } from '../../../shared';
 
 /**
  * Component to display reports in an overview inner tab.
+ *
+ * Implements {@link IInnerTabComponent} to declare the standard inner-tab inputs.
  */
 @Component({
   selector: 'app-overview-report',
@@ -13,16 +16,15 @@ import { TableModule } from 'primeng/table';
   templateUrl: './overview-report.component.html',
   styleUrl: './overview-report.component.scss',
 })
-export class OverviewReportComponent implements OnInit {
-  /**
-   * Data passed from the inner tab system.
-   */
+export class OverviewReportComponent implements OnInit, IInnerTabComponent {
+  /** Data passed from the inner tab system. */
   @Input() tabData?: Record<string, unknown>;
 
-  /**
-   * The ID of this inner tab.
-   */
+  /** The ID of this inner tab instance. */
   @Input() tabId?: string;
+
+  /** The parent tab context ID, passed automatically by BaseTabWrapper. */
+  @Input() parentTabId?: string;
 
   reportType: string = '';
   

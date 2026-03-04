@@ -1,15 +1,18 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
+import { FormsModule } from '@angular/forms';
+import { IInnerTabComponent } from '../../../shared';
 
 /**
  * Component for creating or editing tasks.
  * Mode is determined by tabData.mode ('create' or 'edit').
+ *
+ * Implements {@link IInnerTabComponent} to declare the standard inner-tab inputs.
  */
 @Component({
   selector: 'app-task-form',
@@ -25,16 +28,15 @@ import { CalendarModule } from 'primeng/calendar';
   templateUrl: './task-form.component.html',
   styleUrl: './task-form.component.scss',
 })
-export class TaskFormComponent implements OnInit {
-  /**
-   * Data passed from the inner tab system.
-   */
+export class TaskFormComponent implements OnInit, IInnerTabComponent {
+  /** Data passed from the inner tab system. */
   @Input() tabData?: Record<string, unknown>;
 
-  /**
-   * The ID of this inner tab.
-   */
+  /** The ID of this inner tab instance. */
   @Input() tabId?: string;
+
+  /** The parent tab context ID, passed automatically by BaseTabWrapper. */
+  @Input() parentTabId?: string;
 
   // Form mode
   isEditMode = false;
